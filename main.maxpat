@@ -11,8 +11,8 @@
   "rect": [
    30,
    30,
-   960,
-   840
+   1250,
+   1040
   ],
   "boxes": [
    {
@@ -65,7 +65,7 @@
       280,
       36,
       650,
-      210
+      100
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -86,12 +86,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "drums.maxpat",
+     "name": "drumseq.maxpat",
      "patching_rect": [
       10,
-      260,
-      270,
-      85
+      146,
+      930,
+      400
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -112,11 +112,11 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "bass.maxpat",
+     "name": "delay.maxpat",
      "patching_rect": [
-      290,
-      260,
-      270,
+      950,
+      146,
+      280,
       105
      ],
      "numinlets": 0,
@@ -138,12 +138,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "mod.maxpat",
+     "name": "reverb.maxpat",
      "patching_rect": [
-      570,
-      260,
-      370,
-      120
+      950,
+      261,
+      280,
+      105
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -164,12 +164,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "arp.maxpat",
+     "name": "drums.maxpat",
      "patching_rect": [
       10,
-      395,
-      430,
-      140
+      556,
+      420,
+      95
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -190,12 +190,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "lead.maxpat",
+     "name": "bass.maxpat",
      "patching_rect": [
-      450,
-      395,
-      320,
-      110
+      440,
+      556,
+      270,
+      105
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -216,12 +216,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "sampler.maxpat",
+     "name": "mod.maxpat",
      "patching_rect": [
-      10,
-      545,
-      470,
-      145
+      720,
+      556,
+      370,
+      120
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -242,12 +242,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "mixer.maxpat",
+     "name": "arp.maxpat",
      "patching_rect": [
-      490,
-      545,
-      440,
-      190
+      10,
+      686,
+      430,
+      140
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -268,12 +268,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "delay.maxpat",
+     "name": "lead.maxpat",
      "patching_rect": [
-      10,
-      700,
-      280,
-      105
+      450,
+      686,
+      320,
+      110
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -294,12 +294,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "reverb.maxpat",
+     "name": "sampler.maxpat",
      "patching_rect": [
-      300,
-      700,
-      280,
-      105
+      10,
+      836,
+      470,
+      145
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -315,6 +315,32 @@
      "enablevscroll": 0,
      "lockeddragscroll": 0,
      "id": "obj-12"
+    }
+   },
+   {
+    "box": {
+     "maxclass": "bpatcher",
+     "name": "mixer.maxpat",
+     "patching_rect": [
+      490,
+      836,
+      440,
+      190
+     ],
+     "numinlets": 0,
+     "numoutlets": 0,
+     "offset": [
+      0.0,
+      0.0
+     ],
+     "viewvisibility": 1,
+     "bgmode": 0,
+     "border": 1,
+     "clickthrough": 0,
+     "enablehscroll": 0,
+     "enablevscroll": 0,
+     "lockeddragscroll": 0,
+     "id": "obj-13"
     }
    }
   ],

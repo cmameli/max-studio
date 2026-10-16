@@ -9,7 +9,7 @@ IO = {
  "*~":(2,1),"throw~":(1,0),"catch~":(1,1),"noise~":(1,1),"svf~":(3,4),"unpack":(1,4),
  "mtof":(1,1),"expr":(1,1),"pack":(2,1),"saw~":(2,1),"lores~":(3,1),"buffer~":(2,2),
  "groove~":(3,2),"sig~":(1,1),"makenote":(3,2),"noteout":(3,0),"clip~":(3,1),"gate":(2,1),
- "js":(1,6),"+~":(2,1),"send~":(1,0),"receive~":(1,1),"adsr~":(5,4),"selector~":(5,1),"tri~":(2,1),"rect~":(2,1),"phasor~":(2,1),"del":(2,1),"-~":(2,1),"*":(2,1),"+":(2,1),"abs~":(1,1),"<~":(2,1),"zl":(2,2),"pak":(2,1),"switch":(3,1),"tapin~":(1,1),"tapout~":(2,2),"comb~":(5,1),"allpass~":(3,1),"onepole~":(2,1),"filtercoeff~":(3,5),"biquad~":(6,1),"poly~":(1,2),"in":(0,1),"out~":(1,0),"thispoly~":(1,2),"play~":(2,2),
+ "js":(1,8),"+~":(2,1),"send~":(1,0),"receive~":(1,1),"adsr~":(5,4),"selector~":(5,1),"tri~":(2,1),"rect~":(2,1),"phasor~":(2,1),"del":(2,1),"-~":(2,1),"*":(2,1),"+":(2,1),"abs~":(1,1),"<~":(2,1),"zl":(2,2),"pak":(2,1),"switch":(3,1),"tapin~":(1,1),"tapout~":(2,2),"comb~":(5,1),"allpass~":(3,1),"onepole~":(2,1),"filtercoeff~":(3,5),"biquad~":(6,1),"poly~":(1,2),"in":(0,1),"out~":(1,0),"thispoly~":(1,2),"play~":(2,2),
 }
 class P:
     def __init__(s): s.boxes=[]; s.lines=[]; s.n=0
@@ -18,6 +18,7 @@ class P:
         box["id"]=s._id(); s.boxes.append({"box":box}); return box["id"]
     def obj(s, text, x, y, w=None):
         head=text.split()[0]; i,o=IO.get(head,(1,1))
+        if head in ("route","sel"): o=len(text.split())     # un'uscita per argomento + quella di scarto
         return s.add({"maxclass":"newobj","text":text,"patching_rect":[x,y,w or max(40,len(text)*7+16),22],
                       "numinlets":i,"numoutlets":o,"outlettype":[""]*o})
     def msg(s, text, x, y, w=None):
@@ -28,7 +29,8 @@ class P:
         if bold: b["fontface"]=1
         return s.add(b)
     def ui(s, cls, x, y, w, h, **kw):
-        io={"umenu":(1,3),"toggle":(1,1),"button":(1,1),"number":(1,2),"flonum":(1,2),"slider":(1,1),"ezdac~":(2,0),"meter~":(1,1)}[cls]
+        io={"umenu":(1,3),"toggle":(1,1),"button":(1,1),"number":(1,2),"flonum":(1,2),"slider":(1,1),"ezdac~":(2,0),"meter~":(1,1),
+            "dial":(1,1),"matrixctrl":(1,2)}[cls]
         b={"maxclass":cls,"patching_rect":[x,y,w,h],"numinlets":io[0],"numoutlets":io[1],
            "outlettype":[""]*io[1],"parameter_enable":0}; b.update(kw); return s.add(b)
     def bp(s, name, x, y, w, h):
@@ -41,6 +43,13 @@ class P:
         d={"patcher":{"fileversion":1,"appversion":{"major":7,"minor":3,"revision":5,"architecture":"x64","modernui":1},
            "rect":list(rect),"boxes":s.boxes,"lines":s.lines}}
         json.dump(d, open(os.path.join(OUT,fn),"w"), indent=1)
+
+def knob(p, label, x, y, lo, hi, w=48):
+    p.com(label,x,y,w+10)
+    return p.ui("flonum",x,y+18,w,22,minimum=lo,maximum=hi)
+def iknob(p, label, x, y, lo, hi, w=48):
+    p.com(label,x,y,w+10)
+    return p.ui("number",x,y+18,w,22,minimum=lo,maximum=hi)
 
 # ---------------- CLOCK ----------------
 p=P()
@@ -63,16 +72,14 @@ md=p.obj("expr $i1%16",120,420); p.c(cnt,0,md); p.c(md,0,stepd)
 srun=p.obj("s clock.running",250,280); p.c(tg,0,srun)
 p.save("clock.maxpat")
 
-# ---------------- SEQUENCER ----------------
+# ---------------- SEQUENCER (sampler + basso; la batteria e' nel DRUM SEQ) ----------------
 p=P()
 p.com("SEQUENCER EUCLIDEO",5,2,170,bold=True)
 st=p.ui("number",180,2,40,22); p.com("step",222,2)
-mt=p.ui("toggle",280,4,18,18); p.com("MIDI drums -> modulare",300,2)
 rst=p.msg("evoreset",470,2)
 cols=[("hits",70),("steps",112),("rot",154),("evo",200),("ogni",226),("rot+",268),("walk",310),("pattern (hits/steps, rotazione)",356)]
 for nm,x in cols: p.com(nm,x,26,200 if x==356 else 44)
-tracks=[("kick",4,16,0, 0,4,1,0),("snare",2,16,4, 0,4,1,0),("hat ch",8,16,0, 1,2,1,2),
-        ("hat op",1,16,2, 1,4,3,0),("sampler",3,8,0, 1,4,1,1)]
+tracks=[("sampler",3,8,0, 1,4,1,1)]
 js=p.obj("js seq.js",10,420,120)
 lb=p.obj("loadbang",600,300)
 disp=[]
@@ -96,45 +103,126 @@ for i,(nm,h,stp,r,ev,every,rs,wk) in enumerate(tracks):
     # valori iniziali: prima steps, poi gli altri
     for k,(o,val) in enumerate(((bs,stp),(bh,h),(br,r),(bv,every),(bt,rs),(bw,wk),(be,ev))):
         m=p.msg(str(val),640+k*36+i*260,330+k*0); p.c(lb,0,m); p.c(m,0,o)
-bl=p.msg("bline 36 0 36 48 0 36 0 39 36 0 43 0 36 48 0 41",70,180,330); p.com("basso",5,180)
+bl=p.msg("bline 36 0 36 48 0 36 0 39 36 0 43 0 36 48 0 41",70,72,330); p.com("basso",5,72)
 p.c(bl,0,js); p.c(rst,0,js)
 dm=p.msg("demo",560,330); p.c(lb,0,dm); p.c(dm,0,js)
 rs_=p.obj("r clock.step",10,250); pre=p.obj("prepend step",10,280); p.c(rs_,0,pre); p.c(pre,0,js)
 rseq=p.obj("r seq",150,250); p.c(rseq,0,js)
-sd=p.obj("s drums.note",10,470); p.c(js,0,sd)
-sb=p.obj("s bass.note",110,470); p.c(js,1,sb)
-ss=p.obj("s sampler.note",210,470); p.c(js,2,ss)
-p.c(js,3,st)
-gt=p.obj("gate",320,470); p.c(mt,0,gt,0); p.c(js,4,gt,1)
-mk=p.obj("makenote 100 60",320,500); p.c(gt,0,mk)
-no=p.obj("noteout",320,530); p.c(mk,0,no,0); p.c(mk,1,no,1)
-rt=p.obj("route 0 1 2 3 4",450,470,140); p.c(js,5,rt)
+sb=p.obj("s bass.note",10,470); p.c(js,0,sb)
+ss=p.obj("s sampler.note",110,470); p.c(js,1,ss)
+p.c(js,2,st)
+rt=p.obj("route 0",450,470); p.c(js,3,rt)
 for i,d in enumerate(disp): p.c(rt,i,d)
 p.save("sequencer.maxpat")
 
+# ---------------- DRUM SEQ (step sequencer stile Metropolis, 16 pattern) ----------------
+p=P()
+GX,CW,RH,COLS=60,26,24,32     # griglia: x iniziale, cella larga 26 e alta 24, 32 step per pagina
+DVOICES=["kick","snare","hat ch","hat op","low tom","hi tom","808"]
+NV=len(DVOICES)
+p.com("DRUM SEQ",5,2,80,bold=True)
+mt=p.ui("toggle",90,4,18,18); p.com("MIDI -> modulare",110,2,110)
+p.com("len",230,2,30); ld=p.ui("dial",258,0,26,26,size=65)
+ln=p.ui("number",288,2,40,22,minimum=1,maximum=64)
+q16=p.msg("16",332,2); q32=p.msg("32",360,2); q64=p.msg("64",388,2)
+p.com("direzione",420,2,60); dr=p.ui("umenu",480,2,90,22,items=["avanti",",","indietro",",","pendolo",",","casuale",",","browniano"])
+p.com("swing %",578,2,60); sw=p.ui("flonum",634,2,46,22,minimum=50.,maximum=75.)
+# numeri degli step ogni 4 (cambiano con la pagina)
+labs=[p.com(str(k*4+1),GX+k*4*CW+2,28,40) for k in range(8)]
+GY=48
+vlab=[p.msg(nm,2,GY+v*RH+1,54) for v,nm in enumerate(DVOICES)]   # clic sul nome: seleziona la voce
+gr=p.ui("matrixctrl",GX,GY,COLS*CW,NV*RH,rows=NV,columns=COLS)
+SY=GY+NV*RH+4
+p.com("skip",5,SY+2,55); sk=p.ui("matrixctrl",GX,SY,COLS*CW,RH,rows=1,columns=COLS)   # celle uguali alla griglia
+# riga edit: sceglie lo step da modificare (una cella alla volta)
+XY=SY+RH+4
+p.com("edit",5,XY+2,55); es=p.ui("matrixctrl",GX,XY,COLS*CW,RH,rows=1,columns=COLS)
+# editor della cella selezionata (voce dal nome a sinistra, step dalla riga edit)
+EY=XY+RH+6
+sel=p.msg("",5,EY+18,120)
+ev=iknob(p,"vel",130,EY,1,127,40); er=iknob(p,"ratchet",174,EY,1,8,44)
+epb=iknob(p,"prob %",222,EY,0,100,44)
+p.com("modo",270,EY,60); em=p.ui("umenu",270,EY+18,70,22,items=["singolo",",","multi"])
+erp=iknob(p,"ripeti col.",344,EY,1,8,52)
+cp=p.msg("copia",410,EY+18); ps=p.msg("incolla",456,EY+18); cl=p.msg("cancella",510,EY+18)
+sv=p.msg("salva",578,EY+18); lo=p.msg("ricarica",622,EY+18)
+p.com("pagina",700,EY,60); pg1=p.msg("1-32",700,EY+18,40); pg2=p.msg("33-64",744,EY+18,48)
+p.com("step",806,EY,40); ph=p.ui("number",806,EY+18,40,22)
+# pad dei pattern
+PY=EY+48
+p.com("pattern",5,PY+6,55)
+pads=p.ui("matrixctrl",GX,PY,16*36,30,rows=1,columns=16)
+for k in range(16): p.com(str(k+1),GX+k*36+10,PY+30,24)
+p.com("solo edit",GX+16*36+10,PY+6,60); eo=p.ui("toggle",GX+16*36+70,PY+8,18,18)
+inf=p.msg("",GX+16*36+94,PY+6,190)
+# plumbing (sotto l'interfaccia)
+Y0=PY+80
+js=p.obj("js dseq.js",10,Y0+270,120)
+for o,name,x in ((ld,"len",10),(ln,"len",80),(dr,"dir",150),(sw,"swing",220),(eo,"only",360),
+                 (ev,"vel",430),(er,"rat",500),(epb,"prob",570),(em,"mode",640),(erp,"rep",710)):
+    pp=p.obj("prepend "+name,x,Y0+220,66); p.c(o,0,pp); p.c(pp,0,js)
+for m_ in (q16,q32,q64):
+    pp=p.obj("prepend len",780,Y0+220,66); p.c(m_,0,pp); p.c(pp,0,js)
+for m_,val,x in ((pg1,0,860),(pg2,1,930)):
+    t_=p.msg("setpage %d"%val,x,Y0+220); p.c(m_,0,t_); p.c(t_,0,js)
+for o,name,x in ((gr,"grid",10),(sk,"skipclick",110),(pads,"pad",230),(es,"editclick",340)):
+    pp=p.obj("prepend "+name,x,Y0+160,100); p.c(o,0,pp); p.c(pp,0,js)
+mcp={"copia":"copy","incolla":"paste","cancella":"clear","salva":"save","ricarica":"load"}
+for m_,nm in ((cp,"copia"),(ps,"incolla"),(cl,"cancella"),(sv,"salva"),(lo,"ricarica")):
+    t_=p.msg(mcp[nm],340+list(mcp).index(nm)*60,Y0+190); p.c(m_,0,t_); p.c(t_,0,js)
+rs_=p.obj("r clock.step",10,Y0); pre=p.obj("prepend step",10,Y0+30); p.c(rs_,0,pre); p.c(pre,0,js)
+rtm=p.obj("r clock.tempo",130,Y0); pt=p.obj("prepend tempo",130,Y0+30); p.c(rtm,0,pt); p.c(pt,0,js)
+rrn=p.obj("r clock.running",250,Y0); pr_=p.obj("prepend run",250,Y0+30); p.c(rrn,0,pr_); p.c(pr_,0,js)
+rds=p.obj("r drumseq",400,Y0); p.c(rds,0,js)
+for v,m_ in enumerate(vlab):
+    t_=p.msg("voice %d"%v,10+v*70,Y0+250); p.c(m_,0,t_); p.c(t_,0,js)
+# uscite
+p.c(js,0,p.obj("s drums.note",10,Y0+320))
+gt=p.obj("gate",120,Y0+320); p.c(mt,0,gt,0); p.c(js,1,gt,1)
+mk=p.obj("makenote 100 60",120,Y0+350); p.c(gt,0,mk)
+no=p.obj("noteout",120,Y0+380); p.c(mk,0,no,0); p.c(mk,1,no,1)
+p.c(js,2,gr); p.c(js,4,pads); p.c(js,5,sk); p.c(js,7,es)
+phs=p.obj("prepend set",230,Y0+290,70); p.c(js,3,phs); p.c(phs,0,ph)
+# valori verso l'interfaccia (con set, per non rimandarli a dseq.js)
+rv=p.obj("route len dir sel vel rat prob mode rep info lab",300,Y0+320,360); p.c(js,6,rv)
+for k,dst in enumerate((None,dr,sel,ev,er,epb,em,erp,inf)):
+    if dst is None: continue
+    sm=p.obj("prepend set",300+k*70,Y0+350,70); p.c(rv,k,sm); p.c(sm,0,dst)
+lns=p.obj("prepend set",300,Y0+380,70); p.c(rv,0,lns); p.c(lns,0,ln); p.c(lns,0,ld)
+rl=p.obj("route 0 1 2 3 4 5 6 7",960,Y0+350,160); p.c(rv,9,rl)
+for k,lb_ in enumerate(labs):
+    sm=p.obj("prepend set",960+k*70,Y0+380,70); p.c(rl,k,sm); p.c(sm,0,lb_)
+# avvio: prima le dimensioni delle griglie (piu' a destra), poi il caricamento dei pattern
+lb=p.obj("loadbang",600,Y0)
+for txt,dst,x in (("load",js,600),("50",sw,660)):
+    m=p.msg(txt,x,Y0+30); p.c(lb,0,m); p.c(m,0,dst)
+for k,(txt,dst) in enumerate((("rows %d, columns %d"%(NV,COLS),gr),("rows 1, columns %d"%COLS,sk),("rows 1, columns %d"%COLS,es),("rows 1, columns 16",pads))):
+    m=p.msg(txt,720+k*140,Y0+30,130); p.c(lb,0,m); p.c(m,0,dst)
+p.save("drumseq.maxpat")
+
 # ---------------- DRUMS ----------------
 p=P()
-p.com("DRUMS",5,2,bold=True)
-names=["K","S","CH","OH"]; tests=[]
+p.com("DRUMS",5,2,bold=True); p.com("generatore dei suoni: clicca per provare le voci",60,2,300)
+names=["K","S","CH","OH","LT","HT","808"]; tests=[]
 for i,nm in enumerate(names):
-    b=p.msg("%d 100"%i,10+i*55,30,45); tests.append(b)
-p.com("clicca per provare: kick, snare, hat chiuso, hat aperto",5,58,260)
-rd=p.obj("r drums.note",10,220); rt=p.obj("route 0 1 2 3",10,250,200); p.c(rd,0,rt)
+    b=p.msg("%d 100"%i,10+i*44,24,40); tests.append(b); p.com(nm,10+i*44,44,40)
+t808=knob(p,"808 Hz",5,62,30.,80.,48); d808=knob(p,"808 dec",60,62,200.,4000.,52)
+rd=p.obj("r drums.note",10,220); rt=p.obj("route 0 1 2 3 4 5 6",10,250,240); p.c(rd,0,rt)
 for b in tests: p.c(b,0,rt)
 def env_sq(p, inlet_from, outlet_idx, msgtext, x, y):
-    tfb=None
     d=p.obj("/ 127.",x,y); p.c(inlet_from,outlet_idx,d)
     m=p.msg(msgtext,x,y+30); p.c(d,0,m)
     l=p.obj("line~",x,y+60); p.c(m,0,l)
     sq=p.obj("*~",x,y+90); p.c(l,0,sq,0); p.c(l,0,sq,1)
     return sq, l
+dsum=p.obj("*~ 1",10,600); dsend=p.obj("send~ bus.drums",10,630); p.c(dsum,0,dsend)
 # kick
 ktb=p.obj("t f b",10,290); p.c(rt,0,ktb)
 kp=p.msg("150, 45 60",80,320); p.c(ktb,1,kp); kl=p.obj("line~",80,350); p.c(kp,0,kl)
 kc=p.obj("cycle~",80,380); p.c(kl,0,kc)
 ksq,_=env_sq(p,ktb,0,"$1, 0 400",10,320)
 kv=p.obj("*~",10,450); p.c(kc,0,kv,0); p.c(ksq,0,kv,1)
-dsum=p.obj("*~ 1",10,560); dsend=p.obj("send~ bus.drums",10,590); p.c(dsum,0,dsend); p.c(kv,0,dsum)
+p.c(kv,0,dsum)
 # snare
 ssq,_=env_sq(p,rt,1,"$1, 0 180",200,290)
 sn=p.obj("noise~",280,290); sf=p.obj("svf~ 1800 0.3",280,320); p.c(sn,0,sf)
@@ -152,14 +240,41 @@ choke=p.msg("0 5",620,330); p.c(rt,2,choke); p.c(choke,0,ohl)
 ohv=p.obj("*~",640,460); p.c(hf,1,ohv,0); p.c(ohsq,0,ohv,1)
 oh=p.obj("*~ 0.5",640,490); p.c(ohv,0,oh)
 p.c(oh,0,dsum)
+# tom: sinusoide con caduta di pitch, come il kick ma piu' acuta
+for k,(f0,f1,pt_,dec) in enumerate(((170,105,120,450),(280,175,100,350))):
+    x=800+k*160
+    tb=p.obj("t f b",x,290); p.c(rt,4+k,tb)
+    tp=p.msg("%d, %d %d"%(f0,f1,pt_),x+70,320); p.c(tb,1,tp); tl=p.obj("line~",x+70,350); p.c(tp,0,tl)
+    tc=p.obj("cycle~",x+70,380); p.c(tl,0,tc)
+    tsq,_=env_sq(p,tb,0,"$1, 0 %d"%dec,x,320)
+    tv=p.obj("*~",x,450); p.c(tc,0,tv,0); p.c(tsq,0,tv,1)
+    tg=p.obj("*~ 0.6",x,480); p.c(tv,0,tg); p.c(tg,0,dsum)
+# 808: sinusoide lunga, caduta di pitch dal 2.5x della nota, saturazione morbida
+x=1130
+btb=p.obj("t f b",x,290); p.c(rt,6,btb)
+bf=p.obj("f 48.",x+70,320); p.c(btb,1,bf); p.c(t808,0,bf,1)
+btf=p.obj("t f f",x+70,350); p.c(bf,0,btf)
+bm=p.obj("* 2.5",x+150,380); p.c(btf,1,bm)
+bpk=p.obj("pack f f",x+70,410); p.c(btf,0,bpk,0); p.c(bm,0,bpk,1)
+bpm_=p.msg("$2, $1 90",x+70,440); p.c(bpk,0,bpm_)
+bl=p.obj("line~",x+70,470); p.c(bpm_,0,bl); bc=p.obj("cycle~",x+70,500); p.c(bl,0,bc)
+bd=p.obj("/ 127.",x,320); p.c(btb,0,bd)
+bdp=p.obj("pack f 1500",x,350); p.c(bd,0,bdp,0); p.c(d808,0,bdp,1)
+bem=p.msg("$1, 0 $2",x,380); p.c(bdp,0,bem)
+bel=p.obj("line~",x,410); p.c(bem,0,bel)
+bsq=p.obj("*~",x,440); p.c(bel,0,bsq,0); p.c(bel,0,bsq,1)
+bv=p.obj("*~",x,530); p.c(bc,0,bv,0); p.c(bsq,0,bv,1)
+bdr=p.obj("*~ 1.6",x,560); p.c(bv,0,bdr)
+bth=p.obj("tanh~",x,590); p.c(bdr,0,bth)
+bg=p.obj("*~ 0.7",x,620); p.c(bth,0,bg); p.c(bg,0,dsum)
+lb=p.obj("loadbang",1300,220)
+for val,o,xx in (("48",t808,1300),("1500",d808,1340)):
+    m=p.msg(val,xx,250); p.c(lb,0,m); p.c(m,0,o)
 p.save("drums.maxpat",(80,80,900,620))
 
 # ---------------- BASS ----------------
 p=P()
 p.com("BASS",5,2,bold=True)
-def knob(p, label, x, y, lo, hi, w=48):
-    p.com(label,x,y,w+10)
-    return p.ui("flonum",x,y+18,w,22,minimum=lo,maximum=hi)
 cut=knob(p,"cutoff",5,22,30.,8000.)
 res=knob(p,"reso",58,22,0.,0.97)
 dec=knob(p,"decay",111,22,10.,3000.)
@@ -429,8 +544,10 @@ for i,(nm,bus,sd,sr) in enumerate(ch):
         rc=p.obj("receive~ "+bus,10+i*150,400,120)
         g=p.obj("*~",10+i*150,430); p.c(rc,0,g,0); p.c(lv,0,g,1)
         p.c(g,0,L); p.c(g,0,R); gr=g
-    a1=p.obj("*~ 0",10+i*150,470); p.c(g,0,a1,0); p.c(gr,0,a1,0); p.c(snd,0,a1,1); p.c(a1,0,dsum)
-    a2=p.obj("*~ 0",80+i*150,470); p.c(g,0,a2,0); p.c(gr,0,a2,0); p.c(snr,0,a2,1); p.c(a2,0,rsum)
+    sides=[g] if gr is g else [g,gr]     # canale mono: un solo cavo (un cavo doppio da' errore in Max)
+    a1=p.obj("*~ 0",10+i*150,470); p.c(snd,0,a1,1); p.c(a1,0,dsum)
+    a2=p.obj("*~ 0",80+i*150,470); p.c(snr,0,a2,1); p.c(a2,0,rsum)
+    for sd_ in sides: p.c(sd_,0,a1,0); p.c(sd_,0,a2,0)
 p.com("return",5,132)
 rd=p.ui("flonum",230,132,48,22,minimum=0.,maximum=1.); rr=p.ui("flonum",282,132,48,22,minimum=0.,maximum=1.)
 init(rd,0.8,500); init(rr,0.8,540)
@@ -521,15 +638,16 @@ p.save("reverb.maxpat")
 p=P()
 p.com("STUDIO - attiva l'audio nel mixer, poi premi play nel clock",10,8,420,bold=True)
 p.bp("clock.maxpat",10,36,260,90)
-p.bp("sequencer.maxpat",280,36,650,210)
-p.bp("drums.maxpat",10,260,270,85)
-p.bp("bass.maxpat",290,260,270,105)
-p.bp("mod.maxpat",570,260,370,120)
-p.bp("arp.maxpat",10,395,430,140)
-p.bp("lead.maxpat",450,395,320,110)
-p.bp("sampler.maxpat",10,545,470,145)
-p.bp("mixer.maxpat",490,545,440,190)
-p.bp("delay.maxpat",10,700,280,105)
-p.bp("reverb.maxpat",300,700,280,105)
-p.save("main.maxpat",(30,30,960,840))
+p.bp("sequencer.maxpat",280,36,650,100)
+p.bp("drumseq.maxpat",10,146,930,400)
+p.bp("delay.maxpat",950,146,280,105)
+p.bp("reverb.maxpat",950,261,280,105)
+p.bp("drums.maxpat",10,556,420,95)
+p.bp("bass.maxpat",440,556,270,105)
+p.bp("mod.maxpat",720,556,370,120)
+p.bp("arp.maxpat",10,686,430,140)
+p.bp("lead.maxpat",450,686,320,110)
+p.bp("sampler.maxpat",10,836,470,145)
+p.bp("mixer.maxpat",490,836,440,190)
+p.save("main.maxpat",(30,30,1250,1040))
 print("ok")

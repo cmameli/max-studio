@@ -199,8 +199,10 @@
       22
      ],
      "numinlets": 1,
-     "numoutlets": 6,
+     "numoutlets": 8,
      "outlettype": [
+      "",
+      "",
       "",
       "",
       "",

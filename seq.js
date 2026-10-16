@@ -1,14 +1,14 @@
 // seq.js - sequencer euclideo evolutivo dello studio (JavaScript ES5)
 // Ingresso: "step n" dal clock + messaggi di editing
+// La batteria e' passata a dseq.js (DRUM SEQ): qui restano sampler e basso.
 autowatch = 1;
 inlets = 1;
-outlets = 6;
-// 0: drums "voce vel" | 1: bass "nota vel slide accento" | 2: sampler "slot vel"
-// 3: step corrente (0-15) | 4: MIDI drums "nota vel" | 5: display "traccia set ..."
+outlets = 4;
+// 0: bass "nota vel slide accento" | 1: sampler "slot vel"
+// 2: step corrente (0-15) | 3: display "traccia set ..."
 
 var STEPS = 16;
-var TR = 5;                        // tracce 0-3 batteria, 4 sampler
-var drumNotes = [36, 38, 42, 46];  // note MIDI per la modulare
+var TR = 1;                        // traccia 0: sampler
 var pat = [];                      // pat[t][s] = velocity (0 = spento)
 var len = [];                      // lunghezza del ciclo per traccia
 var prb = [];                      // probabilita' 0..1
@@ -79,11 +79,10 @@ function evoreset() {
 function show(t) {
     var a = [t, "set", E[t].h + "/" + E[t].st, "r" + E[t].r, ":"];
     for (var s = 0; s < len[t]; s++) a.push(pat[t][s] > 0 ? "x" : "-");
-    outlet(5, a);
+    outlet(3, a);
 }
 
 function prob(t, p) { prb[t] = clamp(p, 0, 1); }
-function note(t, n) { drumNotes[t] = n; }
 
 // ---------------- clock ----------------
 function step(n) {
@@ -95,17 +94,12 @@ function step(n) {
         var v = pat[t][n % len[t]];
         fire[t] = (v > 0 && Math.random() < prb[t]) ? v : 0;
     }
-    if (fire[3] > 0) fire[2] = 0;                   // l'hat aperto ha la precedenza su quello chiuso
-
-    for (t = 0; t < 4; t++) {
-        if (fire[t] > 0) { outlet(4, drumNotes[t], fire[t]); outlet(0, t, fire[t]); }
-    }
-    if (fire[4] > 0) outlet(2, 0, fire[4]);
+    if (fire[0] > 0) outlet(1, 0, fire[0]);
 
     var b = bassSteps[n % bassLen];
-    if (b.n > 0) outlet(1, b.n + bassOct * 12, b.v, b.sl, b.ac);
+    if (b.n > 0) outlet(0, b.n + bassOct * 12, b.v, b.sl, b.ac);
 
-    outlet(3, n % STEPS);
+    outlet(2, n % STEPS);
 }
 
 // ---------------- basso ----------------

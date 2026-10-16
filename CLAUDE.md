@@ -27,8 +27,9 @@ il cablaggio interno più in basso (y >= 200), fuori dalla vista.
 |---|---|
 | `main.maxpat` | contiene tutti i moduli come bpatcher |
 | `clock.maxpat` | `[transport]` + `[metro 16n]` + `[counter]`; invia `clock.step` (indice assoluto in sedicesimi), `clock.tempo`, `clock.running` |
-| `sequencer.maxpat` + `seq.js` | sequencer euclideo evolutivo: 5 tracce (0-3 batteria, 4 sampler) + linea di basso |
-| `drums.maxpat` | kick, snare, hat chiuso, hat aperto sintetizzati (l'hat aperto ha la precedenza in `seq.js`) |
+| `sequencer.maxpat` + `seq.js` | sequencer euclideo evolutivo: traccia del sampler + linea di basso |
+| `drumseq.maxpat` + `dseq.js` | step sequencer di batteria stile Metropolis: 7 voci × 1-64 step (`matrixctrl` da 32 step, due pagine), per cella vel/ratchet/prob/modo (singolo/multi), scelta con il nome della voce + la riga `edit` (uno step alla volta), per colonna ripetizioni 1-8 e skip, direzione (avanti/indietro/pendolo/casuale/browniano), swing; 16 pattern sui pad, il cambio avviene a fine pattern; salva in `drumpatterns.json` accanto alle patch; uscita MIDI verso la modulare |
+| `drums.maxpat` | generatore dei suoni: kick, snare, hat chiuso, hat aperto, low tom, hi tom, kick 808 lungo (tune e decay, saturato con `tanh~`); l'hat aperto ha la precedenza in `dseq.js` |
 | `bass.maxpat` | basso mono saw → `lores~`, cutoff modulato da `mod.bass` |
 | `mod.maxpat` | ADSR + LFO (sine/tri/saw/square, sync ai BPM con divisioni) sul cutoff del basso |
 | `arp.maxpat` + `arp.js` | arpeggiatore su scala/progressione di gradi; invia `lead.note` = "nota vel durata_ms" |
@@ -39,7 +40,7 @@ il cablaggio interno più in basso (y >= 200), fuori dalla vista.
 | `reverb.maxpat` | Schroeder: 4 `comb~` + 2 `allpass~` per canale, predelay, EQ in ingresso |
 
 ## Nomi dei messaggi (send/receive)
-- Controllo: `clock.step`, `clock.tempo`, `clock.running`, `clock.play`, `clock.bpm`, `seq`
+- Controllo: `clock.step`, `clock.tempo`, `clock.running`, `clock.play`, `clock.bpm`, `seq`, `drumseq`
 - Note: `drums.note` ("voce vel"), `bass.note` ("nota vel slide accento"), `sampler.note` ("slot vel"), `lead.note`
 - Audio (`send~`/`receive~`): `bus.drums`, `bus.bass`, `bus.sampler.L`, `bus.sampler.R`, `bus.lead`,
   `mod.bass`, `fx.delay.in`, `fx.delay.retL/retR`, `fx.rev.in`, `fx.rev.retL/retR`
@@ -56,7 +57,7 @@ il cablaggio interno più in basso (y >= 200), fuori dalla vista.
   (es. `exp($f1*0.000577623)` invece di `pow(2,$f1/1200)`).
 - JavaScript in ES5 (oggetto `[js]`): niente `let`, `const`, arrow function.
 - `[noteout]` senza porta scelta suona il synth interno di macOS (suono di piano): è il percorso MIDI verso
-  la drum machine modulare dell'utente, attivabile dal toggle nel sequencer.
+  la drum machine modulare dell'utente, attivabile dal toggle nel DRUM SEQ.
 
 ## Test
 Claude Code non può aprire Max: l'utente prova le patch e incolla gli errori della **Max Console**.
@@ -69,5 +70,4 @@ Drum machine modulare (Eurorack), da collegare via MIDI-CV (`noteout` dal sequen
 ## Idee per i prossimi passi
 - Preset globali con `pattrstorage`
 - Mappatura di un controller MIDI sui parametri
-- Griglia cliccabile per il sequencer (`live.grid` o `matrixctrl`)
 - Più destinazioni per l'LFO (pitch, volume), controlli per voce nei drums
