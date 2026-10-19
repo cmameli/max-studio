@@ -1427,7 +1427,7 @@
       51,
       22
      ],
-     "numinlets": 1,
+     "numinlets": 2,
      "numoutlets": 1,
      "outlettype": [
       ""

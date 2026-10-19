@@ -9,7 +9,7 @@ IO = {
  "*~":(2,1),"throw~":(1,0),"catch~":(1,1),"noise~":(1,1),"svf~":(3,4),"unpack":(1,4),
  "mtof":(1,1),"expr":(1,1),"pack":(2,1),"saw~":(2,1),"lores~":(3,1),"buffer~":(2,2),
  "groove~":(3,2),"sig~":(1,1),"makenote":(3,2),"noteout":(3,0),"clip~":(3,1),"gate":(2,1),
- "js":(1,8),"+~":(2,1),"send~":(1,0),"receive~":(1,1),"adsr~":(5,4),"selector~":(5,1),"tri~":(2,1),"rect~":(2,1),"phasor~":(2,1),"del":(2,1),"-~":(2,1),"*":(2,1),"+":(2,1),"abs~":(1,1),"<~":(2,1),"zl":(2,2),"pak":(2,1),"switch":(3,1),"tapin~":(1,1),"tapout~":(2,2),"comb~":(5,1),"allpass~":(3,1),"onepole~":(2,1),"filtercoeff~":(3,5),"biquad~":(6,1),"poly~":(1,2),"in":(0,1),"out~":(1,0),"thispoly~":(1,2),"play~":(2,2),
+ "js":(1,8),"+~":(2,1),"send~":(1,0),"receive~":(1,1),"adsr~":(5,4),"selector~":(5,1),"tri~":(2,1),"rect~":(2,1),"phasor~":(2,1),"del":(2,1),"-~":(2,1),"*":(2,1),"+":(2,1),"abs~":(1,1),"<~":(2,1),"zl":(2,2),"pak":(2,1),"switch":(3,1),"tapin~":(1,1),"tapout~":(2,2),"comb~":(5,1),"allpass~":(3,1),"onepole~":(2,1),"filtercoeff~":(3,5),"biquad~":(6,1),"poly~":(1,2),"in":(0,1),"out~":(1,0),"thispoly~":(1,2),"play~":(2,2),"in~":(1,1),"notein":(1,3),"sah~":(2,1),"tanh~":(1,1),"clip":(3,1),"f":(2,1),"i":(2,1),
 }
 class P:
     def __init__(s): s.boxes=[]; s.lines=[]; s.n=0
@@ -55,7 +55,7 @@ def iknob(p, label, x, y, lo, hi, w=48):
 p=P()
 p.com("CLOCK",5,2,bold=True)
 tg=p.ui("toggle",10,28,30,30); p.com("play",42,34)
-bpm=p.ui("number",90,32,50,22); p.com("BPM",142,32)
+bpm=p.ui("number",90,32,50,22,minimum=20,maximum=300); p.com("BPM",142,32)
 stepd=p.ui("number",190,32,40,22); p.com("step",190,56)
 # plumbing (fuori dalla vista del bpatcher)
 rplay=p.obj("r clock.play",10,220); p.c(rplay,0,tg)
@@ -74,7 +74,7 @@ p.save("clock.maxpat")
 
 # ---------------- SEQUENCER (sampler + basso; la batteria e' nel DRUM SEQ) ----------------
 p=P()
-p.com("SEQUENCER EUCLIDEO",5,2,170,bold=True)
+p.com("SEQUENCER EUCLIDEO (sampler)",5,2,200,bold=True)
 st=p.ui("number",180,2,40,22); p.com("step",222,2)
 rst=p.msg("evoreset",470,2)
 cols=[("hits",70),("steps",112),("rot",154),("evo",200),("ogni",226),("rot+",268),("walk",310),("pattern (hits/steps, rotazione)",356)]
@@ -103,15 +103,12 @@ for i,(nm,h,stp,r,ev,every,rs,wk) in enumerate(tracks):
     # valori iniziali: prima steps, poi gli altri
     for k,(o,val) in enumerate(((bs,stp),(bh,h),(br,r),(bv,every),(bt,rs),(bw,wk),(be,ev))):
         m=p.msg(str(val),640+k*36+i*260,330+k*0); p.c(lb,0,m); p.c(m,0,o)
-bl=p.msg("bline 36 0 36 48 0 36 0 39 36 0 43 0 36 48 0 41",70,72,330); p.com("basso",5,72)
-p.c(bl,0,js); p.c(rst,0,js)
-dm=p.msg("demo",560,330); p.c(lb,0,dm); p.c(dm,0,js)
+p.c(rst,0,js)
 rs_=p.obj("r clock.step",10,250); pre=p.obj("prepend step",10,280); p.c(rs_,0,pre); p.c(pre,0,js)
 rseq=p.obj("r seq",150,250); p.c(rseq,0,js)
-sb=p.obj("s bass.note",10,470); p.c(js,0,sb)
-ss=p.obj("s sampler.note",110,470); p.c(js,1,ss)
-p.c(js,2,st)
-rt=p.obj("route 0",450,470); p.c(js,3,rt)
+ss=p.obj("s sampler.note",10,470); p.c(js,0,ss)
+p.c(js,1,st)
+rt=p.obj("route 0",450,470); p.c(js,2,rt)
 for i,d in enumerate(disp): p.c(rt,i,d)
 p.save("sequencer.maxpat")
 
@@ -184,7 +181,8 @@ no=p.obj("noteout",120,Y0+380); p.c(mk,0,no,0); p.c(mk,1,no,1)
 p.c(js,2,gr); p.c(js,4,pads); p.c(js,5,sk); p.c(js,7,es)
 phs=p.obj("prepend set",230,Y0+290,70); p.c(js,3,phs); p.c(phs,0,ph)
 # valori verso l'interfaccia (con set, per non rimandarli a dseq.js)
-rv=p.obj("route len dir sel vel rat prob mode rep info lab",300,Y0+320,360); p.c(js,6,rv)
+rv=p.obj("route len dir sel vel rat prob mode rep info lab swing",300,Y0+320,400); p.c(js,6,rv)
+p.c(rv,10,p.obj("s seq.swing",1500,Y0+350))
 for k,dst in enumerate((None,dr,sel,ev,er,epb,em,erp,inf)):
     if dst is None: continue
     sm=p.obj("prepend set",300+k*70,Y0+350,70); p.c(rv,k,sm); p.c(sm,0,dst)
@@ -199,6 +197,89 @@ for txt,dst,x in (("load",js,600),("50",sw,660)):
 for k,(txt,dst) in enumerate((("rows %d, columns %d"%(NV,COLS),gr),("rows 1, columns %d"%COLS,sk),("rows 1, columns %d"%COLS,es),("rows 1, columns 16",pads))):
     m=p.msg(txt,720+k*140,Y0+30,130); p.c(lb,0,m); p.c(m,0,dst)
 p.save("drumseq.maxpat")
+
+# ---------------- BASS SEQ (step sequencer di basso stile SH-101, 16 pattern) ----------------
+p=P()
+GX,CW,RH,COLS=60,26,20,32
+BROWS=["B","A#","A","G#","G","F#","F","E","D#","D","C#","C","ott +","ott -","acc"]
+NR=len(BROWS)
+p.com("BASS SEQ",5,2,80,bold=True)
+mt=p.ui("toggle",90,4,18,18); p.com("MIDI -> modulare",110,2,110)
+p.com("len",230,2,30); ld=p.ui("dial",258,0,26,26,size=32)
+ln=p.ui("number",288,2,40,22,minimum=1,maximum=32)
+q8=p.msg("8",332,2); q16=p.msg("16",356,2); q32=p.msg("32",384,2)
+p.com("direzione",420,2,60); dr=p.ui("umenu",480,2,90,22,items=["avanti",",","indietro",",","pendolo",",","casuale",",","browniano"])
+p.com("ottava",580,2,46); bo=p.ui("number",626,2,36,22,minimum=0,maximum=6)
+p.com("trasp",668,2,40); tp=p.ui("number",706,2,40,22,minimum=-24,maximum=24)
+p.com("gate %",752,2,46); gp=p.ui("number",798,2,40,22,minimum=5,maximum=100)
+p.com("swing: dalla batteria",846,2,140)
+for k in range(0,COLS,4): p.com(str(k+1),GX+k*CW+2,28,40)
+GY=48
+for r,nm in enumerate(BROWS): p.com(nm,5,GY+r*RH+1,55)
+gr=p.ui("matrixctrl",GX,GY,COLS*CW,NR*RH,rows=NR,columns=COLS)
+SY=GY+NR*RH+4
+p.com("skip",5,SY+1,55); sk=p.ui("matrixctrl",GX,SY,COLS*CW,RH,rows=1,columns=COLS)
+XY=SY+RH+4
+p.com("edit",5,XY+1,55); es=p.ui("matrixctrl",GX,XY,COLS*CW,RH,rows=1,columns=COLS)
+# editor dello step selezionato
+EY=XY+RH+6
+sel=p.msg("",5,EY+18,150)
+ev=iknob(p,"vel",160,EY,1,127,40); ed=iknob(p,"durata (step)",204,EY,1,8,44)
+p.com("step",260,EY,40); ph=p.ui("number",260,EY+18,40,22)
+cp=p.msg("copia",310,EY+18); ps=p.msg("incolla",356,EY+18); cl=p.msg("cancella",410,EY+18)
+sv=p.msg("salva",478,EY+18); lo=p.msg("ricarica",522,EY+18)
+p.com("genera:",590,EY,50)
+grt=p.ui("umenu",590,EY+18,50,22,items=[x for pair in [(n,",") for n in NAMES12] for x in pair][:-1])
+gsc=p.ui("umenu",644,EY+18,90,22,items=["minore",",","maggiore",",","dorica",",","frigia",",","penta min",",","blues",",","min armonica"])
+gen_=p.msg("genera",738,EY+18)
+# pad dei pattern
+PY=EY+48
+p.com("pattern",5,PY+6,55)
+pads=p.ui("matrixctrl",GX,PY,16*36,30,rows=1,columns=16)
+for k in range(16): p.com(str(k+1),GX+k*36+10,PY+30,24)
+p.com("solo edit",GX+16*36+10,PY+6,60); eo=p.ui("toggle",GX+16*36+70,PY+8,18,18)
+inf=p.msg("",GX+16*36+94,PY+6,190)
+# plumbing (sotto l'interfaccia)
+Y0=PY+80
+js=p.obj("js bseq.js",10,Y0+270,120)
+for o,name,x in ((ld,"len",10),(ln,"len",80),(dr,"dir",150),(bo,"baseoct",220),(tp,"transp",290),(gp,"gate",360),(eo,"only",430),(ev,"vel",500),(ed,"dur",570)):
+    pp=p.obj("prepend "+name,x,Y0+220,66); p.c(o,0,pp); p.c(pp,0,js)
+for m_ in (q8,q16,q32):
+    pp=p.obj("prepend len",640,Y0+220,66); p.c(m_,0,pp); p.c(pp,0,js)
+for o,name,x in ((gr,"grid",10),(sk,"skipclick",110),(pads,"pad",230),(es,"editclick",340)):
+    pp=p.obj("prepend "+name,x,Y0+160,100); p.c(o,0,pp); p.c(pp,0,js)
+mcp={"copia":"copy","incolla":"paste","cancella":"clear","salva":"save","ricarica":"load"}
+for k_,(m_,nm) in enumerate(((cp,"copia"),(ps,"incolla"),(cl,"cancella"),(sv,"salva"),(lo,"ricarica"))):
+    t_=p.msg(mcp[nm],460+k_*60,Y0+160); p.c(m_,0,t_); p.c(t_,0,js)
+# genera: root e scala dai menu, il pulsante fa partire la lista
+gk=p.obj("pak i i",780,Y0+130); p.c(grt,0,gk,0); p.c(gsc,0,gk,1)
+greg=p.obj("zl reg",860,Y0+160); p.c(gk,0,greg,1); p.c(gen_,0,greg,0)   # il pulsante fa uscire la coppia memorizzata
+gpre=p.obj("prepend genera",860,Y0+190,100); p.c(greg,0,gpre); p.c(gpre,0,js)
+rs_=p.obj("r clock.step",10,Y0); pre=p.obj("prepend step",10,Y0+30); p.c(rs_,0,pre); p.c(pre,0,js)
+rtm=p.obj("r clock.tempo",130,Y0); pt=p.obj("prepend tempo",130,Y0+30); p.c(rtm,0,pt); p.c(pt,0,js)
+rrn=p.obj("r clock.running",250,Y0); pr_=p.obj("prepend run",250,Y0+30); p.c(rrn,0,pr_); p.c(pr_,0,js)
+rsw=p.obj("r seq.swing",370,Y0); psw=p.obj("prepend swing",370,Y0+30); p.c(rsw,0,psw); p.c(psw,0,js)
+rbs=p.obj("r bassseq",490,Y0); p.c(rbs,0,js)
+# uscite
+p.c(js,0,p.obj("s bass.note",10,Y0+320))
+gt=p.obj("gate",120,Y0+320); p.c(mt,0,gt,0); p.c(js,1,gt,1)
+mu=p.obj("unpack i i f",120,Y0+350,90); p.c(gt,0,mu)
+mk=p.obj("makenote 100 100",120,Y0+380,110); p.c(mu,0,mk,0); p.c(mu,1,mk,1); p.c(mu,2,mk,2)
+no=p.obj("noteout 2",120,Y0+410); p.c(mk,0,no,0); p.c(mk,1,no,1)
+p.c(js,2,gr); p.c(js,4,pads); p.c(js,5,sk); p.c(js,7,es)
+phs=p.obj("prepend set",230,Y0+290,70); p.c(js,3,phs); p.c(phs,0,ph)
+rv=p.obj("route len dir sel vel dur info",300,Y0+320,250); p.c(js,6,rv)
+for k,dst in enumerate((None,dr,sel,ev,ed,inf)):
+    if dst is None: continue
+    sm=p.obj("prepend set",300+k*70,Y0+350,70); p.c(rv,k,sm); p.c(sm,0,dst)
+lns=p.obj("prepend set",300,Y0+380,70); p.c(rv,0,lns); p.c(lns,0,ln); p.c(lns,0,ld)
+# avvio: prima le dimensioni delle griglie (piu' a destra), poi i valori globali, poi il caricamento dei pattern
+lb=p.obj("loadbang",600,Y0)
+for txt,dst,x in (("load",js,600),("2",bo,660),("0",tp,700),("60",gp,740),("0",grt,780),("0",gsc,820)):
+    m=p.msg(txt,x,Y0+30); p.c(lb,0,m); p.c(m,0,dst)
+for k,(txt,dst) in enumerate((("rows %d, columns %d"%(NR,COLS),gr),("rows 1, columns %d"%COLS,sk),("rows 1, columns %d"%COLS,es),("rows 1, columns 16",pads))):
+    m=p.msg(txt,880+k*140,Y0+30,130); p.c(lb,0,m); p.c(m,0,dst)
+p.save("bassseq.maxpat")
 
 # ---------------- DRUMS ----------------
 p=P()
@@ -272,102 +353,141 @@ for val,o,xx in (("48",t808,1300),("1500",d808,1340)):
     m=p.msg(val,xx,250); p.c(lb,0,m); p.c(m,0,o)
 p.save("drums.maxpat",(80,80,900,620))
 
-# ---------------- BASS ----------------
+# ---------------- BASS (mono synth stile SH-101) ----------------
 p=P()
-p.com("BASS",5,2,bold=True)
-cut=knob(p,"cutoff",5,22,30.,8000.)
-res=knob(p,"reso",58,22,0.,0.97)
-dec=knob(p,"decay",111,22,10.,3000.)
-gli=knob(p,"glide",164,22,0.,1000.)
-lev=knob(p,"level",217,22,0.,1.,40)
-t1=p.msg("36 100 0 0",5,72); t2=p.msg("43 100 1 0",90,72); p.com("prova",175,72)
-# valori iniziali
-lb=p.obj("loadbang",400,220)
-for obj_,val,x in ((cut,"300",400),(res,"0.6",440),(dec,"250",480),(gli,"60",520),(lev,"0.5",560)):
-    m=p.msg(val,x,250); p.c(lb,0,m); p.c(m,0,obj_)
-rb=p.obj("r bass.note",10,220); up=p.obj("unpack i i i i",10,250,150); p.c(rb,0,up)
-p.c(t1,0,up); p.c(t2,0,up)
-# glide = slide * glide_ms + 1
-gm=p.obj("* 60.",180,280); p.c(up,2,gm); p.c(gli,0,gm,1)
-gp=p.obj("+ 1.",180,310); p.c(gm,0,gp)
-mf=p.obj("mtof",10,280); pk=p.obj("pack f f",10,340); p.c(up,0,mf); p.c(mf,0,pk,0); p.c(gp,0,pk,1)
-fl=p.obj("line~",10,370); p.c(pk,0,fl)
-saw=p.obj("saw~",10,400); p.c(fl,0,saw)
-# inviluppo d'ampiezza
-dv=p.obj("/ 127.",300,280); p.c(up,1,dv)
-ap=p.obj("pack f 250",300,310); p.c(dv,0,ap,0); p.c(dec,0,ap,1)
-am=p.msg("$1 5 0 $2",300,340); p.c(ap,0,am); al=p.obj("line~",300,370); p.c(am,0,al)
-# cutoff = base + modulazione (dal modulo MOD)
-cs=p.obj("sig~",450,300); p.c(cut,0,cs)
-mr=p.obj("receive~ mod.bass",540,300,120)
-csum=p.obj("+~",450,340); p.c(cs,0,csum,0); p.c(mr,0,csum,1)
-cc=p.obj("clip~ 30 16000",450,370); p.c(csum,0,cc)
-lp=p.obj("lores~ 300 0.6",10,440); p.c(saw,0,lp,0); p.c(cc,0,lp,1); p.c(res,0,lp,2)
-av=p.obj("*~",10,480); p.c(lp,0,av,0); p.c(al,0,av,1)
-g=p.obj("*~ 0.5",10,510); p.c(av,0,g); p.c(lev,0,g,1)
-p.c(g,0,p.obj("send~ bus.bass",10,540))
+def mn(label,x,y,items,w=60):
+    p.com(label,x,y,w+6)
+    it=[]
+    for k,v in enumerate(items):
+        if k: it.append(",")
+        it.append(v)
+    return p.ui("umenu",x,y+18,w,22,items=it)
+p.com("BASS - stile SH-101",5,2,150,bold=True)
+p.com("(gate ms: solo se il sequencer non manda la durata)",640,106,290)
+t1=p.msg("36 100 0 0 0",160,2,86); t2=p.msg("43 100 1 0 0",250,2,86); t3=p.msg("36 127 0 1 0",340,2,86)
+p.com("prova: nota / legato / accento",430,2,200)
+# riga 1: VCO + VCF
+oc=mn("ottava",5,22,["16'","8'","4'"],46)
+sawl=knob(p,"saw",56,22,0.,1.,40); pull=knob(p,"pulse",100,22,0.,1.,40); pw=knob(p,"pw",144,22,0.5,0.95,40)
+subm=mn("sub",188,22,["-1 ott","-2 ott","-2 pls"],56); subl=knob(p,"sub lvl",248,22,0.,1.,40); nzl=knob(p,"noise",292,22,0.,1.,40)
+cut=knob(p,"cutoff",345,22,20.,16000.,52); res=knob(p,"reso",401,22,0.,0.98,40); eam=knob(p,"env amt",445,22,-8000.,8000.,52)
+ktr=knob(p,"key trk",501,22,0.,1.,40); drv=knob(p,"drive",545,22,1.,8.,40); lev=knob(p,"level",589,22,0.,1.,40)
+# riga 2: ENV + LFO
+att=knob(p,"att",5,64,1.,3000.,44); dec=knob(p,"dec",53,64,1.,3000.,44); sus=knob(p,"sus",101,64,0.,1.,40); rel=knob(p,"rel",145,64,1.,4000.,44)
+gt=knob(p,"gate ms",193,64,5.,2000.,48); vca=mn("vca",245,64,["env","gate"],50)
+shp=mn("lfo",300,64,["tri","square","random","noise"],62); rate=knob(p,"rate Hz",366,64,0.05,30.,46)
+p.com("sync",416,64); sy=p.ui("toggle",418,84,20,20)
+dvm=mn("div",440,64,["4 bars","2 bars","1 bar","1/2","1/4","1/8","1/16","1/4T","1/8T","1/16T"],62)
+vib=knob(p,"vibrato",506,64,0.,1.,40); lvcf=knob(p,"lfo>vcf",550,64,0.,6000.,48); pwmd=knob(p,"pwm",602,64,0.,0.45,40)
+# riga 3: portamento, accento, preset
+por=knob(p,"porta ms",5,106,0.,1000.,48); pmd=mn("porta",57,106,["legato","sempre"],60); acc=knob(p,"accento",121,106,0.,6000.,48)
+p.com("preset",180,106,50)
+pre_acid=p.msg("acid",180,124); pre_sub=p.msg("sub",222,124); pre_pluck=p.msg("pluck",256,124); pre_hoover=p.msg("hoover",300,124)
+# ---- valori iniziali (fuori dalla vista)
+lb=p.obj("loadbang",900,200)
+INIT=[(oc,"1"),(sawl,"1"),(pull,"0"),(pw,"0.5"),(subm,"0"),(subl,"0.5"),(nzl,"0"),(cut,"600"),(res,"0.4"),(eam,"2500"),(ktr,"0.3"),(drv,"1.5"),(lev,"0.6"),
+      (att,"2"),(dec,"250"),(sus,"0.2"),(rel,"120"),(gt,"110"),(vca,"0"),(shp,"0"),(rate,"4"),(sy,"0"),(dvm,"5"),(vib,"0"),(lvcf,"0"),(pwmd,"0"),(por,"60"),(pmd,"0"),(acc,"2500")]
+for k,(o,val) in enumerate(INIT):
+    m=p.msg(val,900+k*40,230); p.c(lb,0,m); p.c(m,0,o)
+# la tabella delle divisioni va piu' a destra: arriva prima del valore del menu
+ql=p.msg("16 8 4 2 1 0.5 0.25 0.666667 0.333333 0.166667",900+len(INIT)*40+20,230,330); p.c(lb,0,ql)
+# ---- preset
+KN={"oc":oc,"saw":sawl,"pul":pull,"pw":pw,"subm":subm,"sub":subl,"nz":nzl,"cut":cut,"res":res,"eam":eam,"ktr":ktr,"drv":drv,
+    "att":att,"dec":dec,"sus":sus,"rel":rel,"gt":gt,"vca":vca,"shp":shp,"rate":rate,"sy":sy,"vib":vib,"lvcf":lvcf,"pwmd":pwmd,"por":por,"pmd":pmd,"acc":acc}
+PRESETS=[(pre_acid,{"oc":"1","saw":"1","pul":"0","sub":"0.3","nz":"0","cut":"300","res":"0.85","eam":"3500","ktr":"0.2","drv":"3","att":"2","dec":"180","sus":"0","rel":"80","gt":"100","vca":"0","vib":"0","lvcf":"0","pwmd":"0","por":"70","pmd":"0","acc":"3500"}),
+         (pre_sub,{"oc":"0","saw":"0.3","pul":"0","subm":"0","sub":"1","nz":"0","cut":"250","res":"0.1","eam":"800","ktr":"0.5","drv":"1.5","att":"3","dec":"400","sus":"0.6","rel":"200","gt":"300","vca":"0","vib":"0","lvcf":"0","pwmd":"0","por":"0","acc":"1000"}),
+         (pre_pluck,{"oc":"1","saw":"0.8","pul":"0.6","pw":"0.5","sub":"0.4","nz":"0","cut":"500","res":"0.5","eam":"4500","ktr":"0.4","drv":"1.5","att":"1","dec":"120","sus":"0","rel":"60","gt":"60","vca":"0","vib":"0","lvcf":"0","pwmd":"0","por":"0","acc":"2500"}),
+         (pre_hoover,{"oc":"1","saw":"1","pul":"0.8","pw":"0.5","pwmd":"0.4","sub":"0.6","nz":"0.05","cut":"1500","res":"0.3","eam":"2000","ktr":"0.3","drv":"2","att":"20","dec":"500","sus":"0.7","rel":"300","gt":"400","vca":"0","shp":"0","rate":"5","sy":"0","vib":"0.15","lvcf":"300","por":"120","pmd":"1","acc":"1500"})]
+for pi,(b_,vals) in enumerate(PRESETS):
+    for k,(key,val) in enumerate(vals.items()):
+        m=p.msg(val,900+pi*40,270+k*22); p.c(b_,0,m); p.c(m,0,KN[key])
+# ---- ingresso note: "nota vel legato accento"
+rb=p.obj("r bass.note",10,200); up=p.obj("unpack i i i i f",10,230,150); p.c(rb,0,up)
+for t_ in (t1,t2,t3): p.c(t_,0,up)
+# durata del gate: dal sequencer (quinto numero, in ms) oppure dal knob se il sequencer manda 0
+duk=p.obj("pak f f",700,260); p.c(up,4,duk,0); p.c(gt,0,duk,1)
+due=p.obj("expr ($f1>0)*$f1+($f1<=0)*$f2",700,290,180); p.c(duk,0,due)
+# ampiezza = vel/127, +30% con l'accento (vel arriva dopo l'accento: pak esce con i valori giusti)
+ampk=p.obj("pak f i",200,260); p.c(up,1,ampk,0); p.c(up,3,ampk,1)
+ampe=p.obj("expr ($f1/127.)*(1.+$i2*0.3)",200,290,200); p.c(ampk,0,ampe)
+ampc=p.obj("clip 0. 1.",200,320); p.c(ampe,0,ampc)
+ampf=p.obj("f",200,350); p.c(ampc,0,ampf,1)
+# apertura del filtro = env amt + accento * accent amt
+eak=p.obj("pak f i f",420,260,90); p.c(eam,0,eak,0); p.c(up,3,eak,1); p.c(acc,0,eak,2)
+eae=p.obj("expr $f1+$i2*$f3",420,290,120); p.c(eak,0,eae)
+# tempo di glide: porta se la nota e' legata o se il portamento e' "sempre", altrimenti 1 ms
+glk=p.obj("pak i i f",560,260,80); p.c(up,2,glk,0); p.c(pmd,0,glk,1); p.c(por,0,glk,2)
+gle=p.obj("expr ($i1+$i2>0)*$f3+1.",560,290,160); p.c(glk,0,gle)
+# la nota: prima l'altezza, poi il gate, poi (se staccata) l'inviluppo
+tn=p.obj("t b b i",10,260); p.c(up,0,tn)
+octe=p.obj("expr ($i1-1)*12",120,230,100); p.c(oc,0,octe)
+add=p.obj("+ 0",10,290); p.c(tn,2,add,0); p.c(octe,0,add,1)
+mf=p.obj("mtof",10,320); p.c(add,0,mf)
+pk=p.obj("pack f f",10,350); p.c(mf,0,pk,0); p.c(gle,0,pk,1)
+fl=p.obj("line~",10,380); p.c(pk,0,fl)
+dl=p.obj("del 110",120,350); p.c(tn,1,dl,0); p.c(due,0,dl,1)
+off=p.msg("0",120,380); p.c(dl,0,off)
+sli=p.obj("i",200,380); p.c(up,2,sli,1); p.c(tn,0,sli,0)
+sel0=p.obj("sel 0",200,410); p.c(sli,0,sel0)
+p.c(sel0,0,ampf,0)
+env=p.obj("adsr~ 2 250 0.2 120",200,470,150); p.c(ampf,0,env,0); p.c(off,0,env,0)
+p.c(att,0,env,1); p.c(dec,0,env,2); p.c(sus,0,env,3); p.c(rel,0,env,4)
+genv=p.obj("adsr~ 1 0 1 8",370,470,100); p.c(ampf,0,genv,0); p.c(off,0,genv,0)
+vcas=p.obj("+ 1",370,420); p.c(vca,0,vcas)
+vsel=p.obj("selector~ 2 1",200,510,110); p.c(vcas,0,vsel,0); p.c(env,0,vsel,1); p.c(genv,0,vsel,2)
+# ---- LFO: fase libera o sincronizzata ai BPM, riallineata allo start
+zl=p.obj("zl lookup",700,330); p.c(ql,0,zl,1); p.c(dvm,0,zl,0)
+rt=p.obj("r clock.tempo",820,330)
+pkz=p.obj("pak 120. 1.",760,370); p.c(rt,0,pkz,0); p.c(zl,0,pkz,1)
+hz=p.obj("expr $f1/(60.*$f2)",760,400,140); p.c(pkz,0,hz)
+tbi=p.obj("t b i",640,330); p.c(sy,0,tbi)
+ad1=p.obj("+ 1",640,360); p.c(tbi,1,ad1)
+sw=p.obj("switch 2 1",640,440); p.c(ad1,0,sw,0); p.c(rate,0,sw,1); p.c(hz,0,sw,2)
+p.c(tbi,0,rate); p.c(tbi,0,pkz)
+ph=p.obj("phasor~",640,480); p.c(sw,0,ph,0)
+rr=p.obj("r clock.running",860,440); s1=p.obj("sel 1",860,470); p.c(rr,0,s1); z0=p.msg("0",860,500); p.c(s1,0,z0); p.c(z0,0,ph,1)
+tx2=p.obj("*~ 2",640,520); p.c(ph,0,tx2); tm1=p.obj("-~ 1",640,550); p.c(tx2,0,tm1)
+tab=p.obj("abs~",640,580); p.c(tm1,0,tab); ta2=p.obj("*~ 2",640,610); p.c(tab,0,ta2); tri=p.obj("-~ 1",640,640); p.c(ta2,0,tri)
+lt=p.obj("<~ 0.5",720,520); p.c(ph,0,lt); q2=p.obj("*~ 2",720,550); p.c(lt,0,q2); sq=p.obj("-~ 1",720,580); p.c(q2,0,sq)
+nz=p.obj("noise~",800,520)
+sh=p.obj("sah~ 0.5",800,560); p.c(nz,0,sh,0); p.c(ph,0,sh,1)
+shp1=p.obj("+ 1",560,620); p.c(shp,0,shp1)
+lsel=p.obj("selector~ 4 1",560,680,120); p.c(shp1,0,lsel,0); p.c(tri,0,lsel,1); p.c(sq,0,lsel,2); p.c(sh,0,lsel,3); p.c(nz,0,lsel,4)
+# ---- VCO: frequenza con vibrato, saw + pulse (PWM) + sub + noise
+vm=p.obj("*~ 0",10,420); p.c(lsel,0,vm,0); p.c(vib,0,vm,1)
+vm2=p.obj("*~ 0.06",10,450); p.c(vm,0,vm2); vp=p.obj("+~ 1",10,480); p.c(vm2,0,vp)
+f=p.obj("*~",10,510); p.c(fl,0,f,0); p.c(vp,0,f,1)
+saw=p.obj("saw~",10,560); p.c(f,0,saw)
+pm=p.obj("*~ 0",120,480); p.c(lsel,0,pm,0); p.c(pwmd,0,pm,1)
+pwa=p.obj("+~ 0.5",120,510); p.c(pm,0,pwa,0); p.c(pw,0,pwa,1)
+pwc=p.obj("clip~ 0.05 0.95",120,540,110); p.c(pwa,0,pwc)
+pul=p.obj("rect~",120,570); p.c(f,0,pul,0); p.c(pwc,0,pul,1)
+f2=p.obj("*~ 0.5",240,540); p.c(f,0,f2); sb1=p.obj("rect~",240,570); p.c(f2,0,sb1)
+f4=p.obj("*~ 0.25",310,540); p.c(f,0,f4); sb2=p.obj("rect~",310,570); p.c(f4,0,sb2)
+pw25=p.obj("sig~ 0.25",450,540); sb3=p.obj("rect~",380,570); p.c(f4,0,sb3,0); p.c(pw25,0,sb3,1)
+subs=p.obj("+ 1",240,600); p.c(subm,0,subs)
+ssel=p.obj("selector~ 3 1",240,630,110); p.c(subs,0,ssel,0); p.c(sb1,0,ssel,1); p.c(sb2,0,ssel,2); p.c(sb3,0,ssel,3)
+onz=p.obj("noise~",480,600)
+mix=p.obj("*~ 1",10,700)
+for src,lvl,x in ((saw,sawl,10),(pul,pull,120),(ssel,subl,240),(onz,nzl,480)):
+    g=p.obj("*~ 0",x,670); p.c(src,0,g,0); p.c(lvl,0,g,1); p.c(g,0,mix)
+# ---- VCF 24 dB: due lores~ in cascata; cutoff = base + env*amt + lfo + key tracking
+cs=p.obj("sig~",560,740); p.c(cut,0,cs)
+fe=p.obj("*~ 2500",200,560); p.c(env,0,fe,0); p.c(eae,0,fe,1)
+lf=p.obj("*~ 0",560,770); p.c(lsel,0,lf,0); p.c(lvcf,0,lf,1)
+kt1=p.obj("-~ 130.81",660,740); p.c(f,0,kt1); kt2=p.obj("*~ 0",660,770); p.c(kt1,0,kt2,0); p.c(ktr,0,kt2,1)
+csum=p.obj("*~ 1",560,800); p.c(cs,0,csum); p.c(fe,0,csum); p.c(lf,0,csum); p.c(kt2,0,csum)
+cc=p.obj("clip~ 20 16000",560,830); p.c(csum,0,cc)
+r1=p.obj("* 0.6",760,800); p.c(res,0,r1)
+lp1=p.obj("lores~ 600 0.3",10,740); p.c(mix,0,lp1,0); p.c(cc,0,lp1,1); p.c(r1,0,lp1,2)
+lp2=p.obj("lores~ 600 0.4",10,770); p.c(lp1,0,lp2,0); p.c(cc,0,lp2,1); p.c(res,0,lp2,2)
+dg=p.obj("*~ 1.5",10,800); p.c(lp2,0,dg,0); p.c(drv,0,dg,1)
+th=p.obj("tanh~",10,830); p.c(dg,0,th)
+# ---- VCA
+va=p.obj("*~",10,860); p.c(th,0,va,0); p.c(vsel,0,va,1)
+out=p.obj("*~ 0.6",10,890); p.c(va,0,out,0); p.c(lev,0,out,1)
+p.c(out,0,p.obj("send~ bus.bass",10,920))
 p.save("bass.maxpat")
-
-# ---------------- MOD (inviluppo + LFO per il basso) ----------------
-p=P()
-p.com("MOD -> cutoff basso",5,2,160,bold=True)
-p.com("ENV",5,24,bold=True)
-ea=knob(p,"att",40,22,0.,2000.); ed=knob(p,"dec",93,22,1.,3000.)
-es=knob(p,"sus",146,22,0.,1.); er=knob(p,"rel",199,22,1.,3000.)
-eg=knob(p,"gate",252,22,5.,2000.); eam=knob(p,"amount",305,22,-8000.,8000.,56)
-p.com("LFO",5,70,bold=True)
-lr=knob(p,"rate Hz",40,68,0.01,40.,52); ld=knob(p,"depth",97,68,0.,8000.,56)
-p.com("forma",158,68)
-sh=p.ui("umenu",158,86,80,22,items=["sine",",","tri",",","saw",",","square"])
-lb=p.obj("loadbang",420,220)
-for obj_,val,x in ((ea,"5",420),(ed,"200",460),(es,"0.2",500),(er,"300",540),(eg,"150",580),(eam,"2500",620),(lr,"2",660),(ld,"0",700),(sh,"0",740)):
-    m=p.msg(val,x,250); p.c(lb,0,m); p.c(m,0,obj_)
-# trigger dalle note del basso
-rb=p.obj("r bass.note",10,220); up=p.obj("unpack i i i i",10,250,150); p.c(rb,0,up)
-dv=p.obj("/ 127.",10,280); p.c(up,1,dv)
-tb=p.obj("t b f",10,310); p.c(dv,0,tb)
-dl=p.obj("del 150",120,340); p.c(tb,0,dl); p.c(eg,0,dl,1)
-z=p.msg("0",120,370); p.c(dl,0,z)
-env=p.obj("adsr~ 5 200 0.2 300",10,400,150)
-p.c(tb,1,env,0); p.c(z,0,env,0)
-p.c(ea,0,env,1); p.c(ed,0,env,2); p.c(es,0,env,3); p.c(er,0,env,4)
-ev=p.obj("*~ 2500",10,440); p.c(env,0,ev,0); p.c(eam,0,ev,1)
-# LFO: fase (libera o sincronizzata ai BPM) -> forme d'onda
-p.com("sync",244,68); sy=p.ui("toggle",246,88,20,20)
-p.com("div",272,68); dvm=p.ui("umenu",272,86,70,22,items=["4 bars",",","2 bars",",","1 bar",",","1/2",",","1/4",",","1/8",",","1/16",",","1/4T",",","1/8T",",","1/16T"])
-for val,obj_,x in (("0",sy,780),("4",dvm,820)):
-    m=p.msg(val,x,250); p.c(lb,0,m); p.c(m,0,obj_)
-# durata del ciclo in quarti per ogni divisione
-ql=p.msg("16 8 4 2 1 0.5 0.25 0.666667 0.333333 0.166667",900,250,330); p.c(lb,0,ql)
-zl=p.obj("zl lookup",500,330); p.c(ql,0,zl,1); p.c(dvm,0,zl,0)
-rt=p.obj("r clock.tempo",620,330)
-pk=p.obj("pak 120. 1.",560,370); p.c(rt,0,pk,0); p.c(zl,0,pk,1)
-hz=p.obj("expr $f1/(60.*$f2)",560,400,140); p.c(pk,0,hz)
-# scelta libera / sync
-tbi=p.obj("t b i",440,330); p.c(sy,0,tbi)
-ad=p.obj("+ 1",440,360); p.c(tbi,1,ad)
-sw=p.obj("switch 2 1",440,440); p.c(ad,0,sw,0); p.c(lr,0,sw,1); p.c(hz,0,sw,2)
-p.c(tbi,0,lr); p.c(tbi,0,pk)
-ph=p.obj("phasor~",220,400); p.c(sw,0,ph,0)
-# riallineamento della fase: allo start e all'inizio di ogni ciclo
-rr=p.obj("r clock.running",700,440); s1=p.obj("sel 1",700,470); p.c(rr,0,s1)
-rs=p.obj("r clock.step",500,440); gs=p.obj("gate",500,470); p.c(sy,0,gs,0); p.c(rs,0,gs,1)
-cy=p.obj("expr (($i1 % int($f2*4.+0.001))==0) * (abs($f2*4.-int($f2*4.+0.5))<0.01)",500,500,420)
-p.c(gs,0,cy,0); p.c(zl,0,cy,1)
-s2=p.obj("sel 1",500,530); p.c(cy,0,s2)
-z0=p.msg("0",620,560); p.c(s1,0,z0); p.c(s2,0,z0); p.c(z0,0,ph,1)
-# forme d'onda dalla fase (-1..1)
-o1=p.obj("cycle~ 0",220,440); p.c(ph,0,o1,1)
-sx2=p.obj("*~ 2",300,440); p.c(ph,0,sx2); sm1=p.obj("-~ 1",300,470); p.c(sx2,0,sm1)
-ab=p.obj("abs~",360,500); p.c(sm1,0,ab); t2=p.obj("*~ 2",360,530); p.c(ab,0,t2); t1=p.obj("-~ 1",360,560); p.c(t2,0,t1)
-lt=p.obj("<~ 0.5",420,440); p.c(ph,0,lt); q2=p.obj("*~ 2",420,470); p.c(lt,0,q2); q1=p.obj("-~ 1",420,500); p.c(q2,0,q1)
-pl=p.obj("+ 1",160,430); p.c(sh,0,pl)
-sel=p.obj("selector~ 4 1",220,600,120); p.c(pl,0,sel,0)
-p.c(o1,0,sel,1); p.c(t1,0,sel,2); p.c(sm1,0,sel,3); p.c(q1,0,sel,4)
-lv=p.obj("*~ 0",220,630); p.c(sel,0,lv,0); p.c(ld,0,lv,1)
-sumo=p.obj("*~ 1",10,660); p.c(ev,0,sumo); p.c(lv,0,sumo)
-p.c(sumo,0,p.obj("send~ mod.bass",10,690))
-p.save("mod.maxpat")
 
 # ---------------- VOCE DEL GRANO (usata da poly~) ----------------
 p=P()
@@ -476,45 +596,164 @@ for k,(o,val) in enumerate(((on,"1"),(rt_,"9"),(oc,"4"),(sc,"0"),(chd,"1"),(md,"
     m=p.msg(val,800+k*40,280); p.c(lb,0,m); p.c(m,0,o)
 p.save("arp.maxpat")
 
-# ---------------- LEAD SYNTH ----------------
+# ---------------- VOCE DEL LEAD (usata da poly~ leadvoice 8) ----------------
 p=P()
-p.com("LEAD SYNTH",5,2,100,bold=True)
-wv=knob(p,"saw/sq",5,20,0.,1.,44); dt=knob(p,"detune",53,20,0.,50.,44); gl=knob(p,"glide",101,20,0.,500.,44)
-cu=knob(p,"cutoff",149,20,30.,8000.,48); rz=knob(p,"reso",201,20,0.,0.95,44); ea=knob(p,"env amt",249,20,-8000.,8000.,52)
-at=knob(p,"att",5,62,1.,2000.,44); de=knob(p,"dec",53,62,1.,3000.,44); su=knob(p,"sus",101,62,0.,1.,44)
-rl=knob(p,"rel",149,62,1.,4000.,48); lv=knob(p,"level",201,62,0.,1.,44)
-tst=p.msg("69 100 300",255,80); p.com("prova",255,62)
-lb=p.obj("loadbang",700,250)
-for k,(o,val) in enumerate(((wv,"0.3"),(dt,"12"),(gl,"10"),(cu,"900"),(rz,"0.4"),(ea,"2500"),(at,"5"),(de,"180"),(su,"0.4"),(rl,"250"),(lv,"0.4"))):
-    m=p.msg(val,700+k*40,280); p.c(lb,0,m); p.c(m,0,o)
-rn=p.obj("r lead.note",10,250); up=p.obj("unpack i i f",10,280,100); p.c(rn,0,up); p.c(tst,0,up)
-# altezza con glide
-mf=p.obj("mtof",10,310); p.c(up,0,mf)
-pk=p.obj("pack f 10.",10,340); p.c(mf,0,pk,0); p.c(gl,0,pk,1)
-fl=p.obj("line~",10,370); p.c(pk,0,fl)
-sw=p.obj("saw~",10,400); p.c(fl,0,sw)
-ratio=p.obj("expr exp($f1*0.000577623)",100,370,150); p.c(dt,0,ratio)
-fq2=p.obj("*~ 1.",100,400); p.c(fl,0,fq2,0); p.c(ratio,0,fq2,1)
-sq=p.obj("rect~",100,430); p.c(fq2,0,sq)
-# mix delle forme d'onda
-inv=p.obj("expr 1.-$f1",200,430); p.c(wv,0,inv)
-g1=p.obj("*~ 0.7",10,460); p.c(sw,0,g1,0); p.c(inv,0,g1,1)
-g2=p.obj("*~ 0.3",100,460); p.c(sq,0,g2,0); p.c(wv,0,g2,1)
-# inviluppo (ampiezza + filtro)
-dv=p.obj("/ 127.",300,310); p.c(up,1,dv)
-tb=p.obj("t b f",300,340); p.c(dv,0,tb)
-dl=p.obj("del 100",380,370); p.c(tb,0,dl); p.c(up,2,dl,1)
-z=p.msg("0",380,400); p.c(dl,0,z)
-env=p.obj("adsr~ 5 180 0.4 250",300,430,140); p.c(tb,1,env,0); p.c(z,0,env,0)
-p.c(at,0,env,1); p.c(de,0,env,2); p.c(su,0,env,3); p.c(rl,0,env,4)
-fe=p.obj("*~ 2500",460,460); p.c(env,0,fe,0); p.c(ea,0,fe,1)
-cs=p.obj("sig~",560,460); p.c(cu,0,cs)
-cc=p.obj("+~",460,490); p.c(fe,0,cc,0); p.c(cs,0,cc,1)
-cl=p.obj("clip~ 30 16000",460,520); p.c(cc,0,cl)
-lp=p.obj("lores~ 900 0.4",10,520); p.c(g1,0,lp,0); p.c(g2,0,lp,0); p.c(cl,0,lp,1); p.c(rz,0,lp,2)
-av=p.obj("*~",10,560); p.c(lp,0,av,0); p.c(env,0,av,1)
-ol=p.obj("*~ 0.4",10,590); p.c(av,0,ol,0); p.c(lv,0,ol,1)
-p.c(ol,0,p.obj("send~ bus.lead",10,620))
+i1=p.obj("in 1",10,10); lfo=p.obj("in~ 2",700,10)
+rt=p.obj("route on off",10,40,100); p.c(i1,0,rt)
+up=p.obj("unpack f f f f f i",10,70,160); p.c(rt,0,up)      # nota vel detune_cent pan glide_ms legato
+off=p.msg("0",200,70); p.c(rt,1,off)
+# parametri globali: li ricevono tutte le voci
+PAR=["osc1","pw","osc2","semi","fine","bal","fmode","cutoff","res","famt","ktrk","velf","fa","fd","fs","fr","aa","ad","as","ar","lp","lf","lw"]
+rp=p.obj("r lead.par",10,400,90)
+pr=p.obj("route "+" ".join(PAR),10,430,900); p.c(rp,0,pr)
+def PI(name): return PAR.index(name)
+# altezza: nota + detune, glide; il trigger parte solo se la nota non e' legata
+dc=p.obj("/ 100.",120,100); p.c(up,2,dc)
+tb=p.obj("t b f",10,100); p.c(up,0,tb)
+ad_=p.obj("+ 0.",10,130); p.c(tb,1,ad_,0); p.c(dc,0,ad_,1)
+mf=p.obj("mtof",10,160); p.c(ad_,0,mf)
+pk=p.obj("pack f f",10,190); p.c(mf,0,pk,0); p.c(up,4,pk,1)
+fl=p.obj("line~",10,220); p.c(pk,0,fl)
+av=p.obj("/ 127.",200,100); p.c(up,1,av); af=p.obj("f",200,130); p.c(av,0,af,1)
+lg=p.obj("i",280,100); p.c(up,5,lg,1); p.c(tb,0,lg,0)
+s0=p.obj("sel 0",280,130); p.c(lg,0,s0); p.c(s0,0,af,0)
+one=p.msg("1",360,160); p.c(s0,0,one)
+aenv=p.obj("adsr~ 5 200 0.6 300",200,300,140); p.c(af,0,aenv,0); p.c(off,0,aenv,0)
+fenv=p.obj("adsr~ 5 300 0.3 300",360,300,140); p.c(one,0,fenv,0); p.c(off,0,fenv,0)
+for k,nm in enumerate(("aa","ad","as","ar")): p.c(pr,PI(nm),aenv,k+1)
+for k,nm in enumerate(("fa","fd","fs","fr")): p.c(pr,PI(nm),fenv,k+1)
+pL=p.obj("expr cos($f1*1.570796)",520,100,150); pR=p.obj("expr sin($f1*1.570796)",520,130,150); p.c(up,3,pL); p.c(up,3,pR)
+# LFO (arriva dal pannello) scalato per le tre destinazioni
+lpm=p.obj("*~ 0",700,60); p.c(lfo,0,lpm,0); p.c(pr,PI("lp"),lpm,1)
+lfm=p.obj("*~ 0",780,60); p.c(lfo,0,lfm,0); p.c(pr,PI("lf"),lfm,1)
+lwm=p.obj("*~ 0",860,60); p.c(lfo,0,lwm,0); p.c(pr,PI("lw"),lwm,1)
+lr=p.obj("*~ 0.0578",700,90); p.c(lpm,0,lr); lr1=p.obj("+~ 1",700,120); p.c(lr,0,lr1)
+f=p.obj("*~",10,250); p.c(fl,0,f,0); p.c(lr1,0,f,1)
+# OSC 1: tri / saw / pulse (PWM) / sine
+pwa=p.obj("+~ 0.5",120,250); p.c(lwm,0,pwa,0); p.c(pr,PI("pw"),pwa,1)
+pwc=p.obj("clip~ 0.05 0.95",120,280,110); p.c(pwa,0,pwc)
+o1=[p.obj("tri~",10,300),p.obj("saw~",60,300),p.obj("rect~",110,300),p.obj("cycle~",160,300)]
+for o in o1: p.c(f,0,o,0)
+p.c(pwc,0,o1[2],1)
+s1a=p.obj("+ 1",10,330); p.c(pr,PI("osc1"),s1a)
+sel1=p.obj("selector~ 4 1",10,360,110); p.c(s1a,0,sel1,0)
+for k,o in enumerate(o1): p.c(o,0,sel1,k+1)
+# OSC 2: tri / saw / pulse / noise, semitoni + fine
+rk=p.obj("pak f f",400,200); p.c(pr,PI("semi"),rk,0); p.c(pr,PI("fine"),rk,1)
+re=p.obj("expr exp(($f1+$f2*0.01)*0.057762265)",400,230,220); p.c(rk,0,re)
+f2=p.obj("*~ 1.",400,260); p.c(f,0,f2,0); p.c(re,0,f2,1)
+o2=[p.obj("tri~",400,300),p.obj("saw~",450,300),p.obj("rect~",500,300),p.obj("noise~",550,300)]
+for o in o2[:3]: p.c(f2,0,o,0)
+s2a=p.obj("+ 1",400,330); p.c(pr,PI("osc2"),s2a)
+sel2=p.obj("selector~ 4 1",400,360,110); p.c(s2a,0,sel2,0)
+for k,o in enumerate(o2): p.c(o,0,sel2,k+1)
+# mix
+inv=p.obj("expr 1.-$f1",200,470,80); p.c(pr,PI("bal"),inv)
+g1=p.obj("*~ 0.5",10,500); p.c(sel1,0,g1,0); p.c(inv,0,g1,1)
+g2=p.obj("*~ 0.5",120,500); p.c(sel2,0,g2,0); p.c(pr,PI("bal"),g2,1)
+mix=p.obj("*~ 1",10,530); p.c(g1,0,mix); p.c(g2,0,mix)
+# filtro: cutoff = base + env*amt*(1-velf+velf*vel) + lfo + key tracking
+cs=p.obj("sig~",300,500); p.c(pr,PI("cutoff"),cs)
+ek=p.obj("pak f f f",400,470,90); p.c(pr,PI("famt"),ek,0); p.c(av,0,ek,1); p.c(pr,PI("velf"),ek,2)
+ee=p.obj("expr $f1*(1.-$f3+$f3*$f2)",400,500,180); p.c(ek,0,ee)
+fe=p.obj("*~ 0",360,530); p.c(fenv,0,fe,0); p.c(ee,0,fe,1)
+kt=p.obj("-~ 261.6",600,500); p.c(f,0,kt); kt2=p.obj("*~ 0",600,530); p.c(kt,0,kt2,0); p.c(pr,PI("ktrk"),kt2,1)
+csum=p.obj("*~ 1",300,560); p.c(cs,0,csum); p.c(fe,0,csum); p.c(lfm,0,csum); p.c(kt2,0,csum)
+cc=p.obj("clip~ 20 18000",300,590); p.c(csum,0,cc)
+svf=p.obj("svf~ 1000 0.3",10,600); p.c(mix,0,svf,0); p.c(cc,0,svf,1); p.c(pr,PI("res"),svf,2)
+r6=p.obj("* 0.6",160,570); p.c(pr,PI("res"),r6)
+l1=p.obj("lores~ 1000 0.3",160,600); p.c(mix,0,l1,0); p.c(cc,0,l1,1); p.c(r6,0,l1,2)
+l2=p.obj("lores~ 1000 0.3",160,630); p.c(l1,0,l2,0); p.c(cc,0,l2,1); p.c(pr,PI("res"),l2,2)
+fm1=p.obj("+ 1",10,660); p.c(pr,PI("fmode"),fm1)
+fsel=p.obj("selector~ 5 1",10,690,120); p.c(fm1,0,fsel,0); p.c(svf,0,fsel,1); p.c(l2,0,fsel,2); p.c(svf,1,fsel,3); p.c(svf,2,fsel,4); p.c(svf,3,fsel,5)
+# VCA e pan
+va=p.obj("*~",10,730); p.c(fsel,0,va,0); p.c(aenv,0,va,1)
+gL=p.obj("*~",10,760); gR=p.obj("*~",100,760); p.c(va,0,gL,0); p.c(va,0,gR,0); p.c(pL,0,gL,1); p.c(pR,0,gR,1)
+p.c(gL,0,p.obj("out~ 1",10,800)); p.c(gR,0,p.obj("out~ 2",100,800))
+p.save("leadvoice.maxpat")
+
+# ---------------- LEAD (poly synth stile Nord Lead) ----------------
+p=P()
+p.com("LEAD - poly stile Nord Lead",5,2,200,bold=True)
+tst=p.msg("60 100 300",210,2,80); tst2=p.msg("67 100 300",294,2,80); p.com("prova",378,2,40)
+mi=p.ui("toggle",430,4,18,18); p.com("MIDI in (tastiera)",450,2,110)
+pnc=p.msg("panic",580,2)
+# riga 1: oscillatori e filtro
+o1=mn("osc1",5,22,["tri","saw","pulse","sine"],58); pw=knob(p,"pw",68,22,0.5,0.95,40)
+o2=mn("osc2",112,22,["tri","saw","pulse","noise"],58); sm=iknob(p,"semi",174,22,-24,24,40); fn=knob(p,"fine",218,22,-50.,50.,40)
+bal=knob(p,"mix 1<>2",262,22,0.,1.,44)
+fmd=mn("filtro",310,22,["LP 12","LP 24","HP","BP","notch"],60); cut=knob(p,"cutoff",374,22,20.,16000.,52); res=knob(p,"reso",430,22,0.,0.95,40)
+eam=knob(p,"env amt",474,22,-8000.,8000.,52); ktr=knob(p,"key trk",530,22,0.,1.,40); vf=knob(p,"vel>filt",574,22,0.,1.,44); lev=knob(p,"level",622,22,0.,1.,40)
+# riga 2: inviluppi e LFO
+fa=knob(p,"f att",5,64,1.,3000.,40); fd=knob(p,"f dec",49,64,1.,4000.,40); fs=knob(p,"f sus",93,64,0.,1.,40); fr=knob(p,"f rel",137,64,1.,5000.,40)
+aa=knob(p,"a att",190,64,1.,3000.,40); ad=knob(p,"a dec",234,64,1.,4000.,40); as_=knob(p,"a sus",278,64,0.,1.,40); ar=knob(p,"a rel",322,64,1.,5000.,40)
+shp=mn("lfo",372,64,["tri","saw","square","random"],60); rate=knob(p,"rate Hz",436,64,0.05,30.,46)
+p.com("sync",486,64); sy=p.ui("toggle",488,84,20,20)
+dvm=mn("div",510,64,["4 bars","2 bars","1 bar","1/2","1/4","1/8","1/16","1/4T","1/8T","1/16T"],62)
+ds=mn("lfo ->",576,64,["pitch","filtro","pw"],54); lam=knob(p,"lfo amt",634,64,0.,1.,44)
+# riga 3: unison, modo, preset
+un=mn("unison",5,106,["1","2","4"],44); dt=knob(p,"detune",53,106,0.,50.,44); spd=knob(p,"spread",101,106,0.,1.,44)
+md=mn("modo",150,106,["poly","mono","legato"],60); por=knob(p,"porta ms",214,106,0.,1000.,48)
+p.com("preset",270,106,50); pr1=p.msg("pad",270,124); pr2=p.msg("pluck",306,124); pr3=p.msg("lead",350,124); pr4=p.msg("brass",388,124)
+inf=p.msg("",440,124,230)
+# ---- note: dall'arpeggiatore e dalla tastiera MIDI
+js=p.obj("js lead.js",10,300,100)
+rn=p.obj("r lead.note",10,200); pn=p.obj("prepend note",10,230,90); p.c(rn,0,pn); p.c(pn,0,js)
+for t_ in (tst,tst2): p.c(t_,0,pn)
+ni=p.obj("notein",150,200); pki=p.obj("pak i i",150,230); p.c(ni,0,pki,0); p.c(ni,1,pki,1)
+gt=p.obj("gate",150,260); p.c(mi,0,gt,0); p.c(pki,0,gt,1); pm=p.obj("prepend midi",150,290,90); p.c(gt,0,pm); p.c(pm,0,js)
+p.c(pnc,0,js)
+for o,name,x in ((un,"unison",300),(dt,"detune",370),(spd,"spread",440),(md,"mode",510),(por,"porta",580)):
+    pp=p.obj("prepend "+name,x,260,70); p.c(o,0,pp); p.c(pp,0,js)
+poly=p.obj("poly~ leadvoice 8",10,340,130); p.c(js,0,poly,0); p.c(js,1,inf)
+# ---- parametri verso tutte le voci
+spar=p.obj("s lead.par",700,330,90)
+PARS=((o1,"osc1"),(pw,"pw"),(o2,"osc2"),(sm,"semi"),(fn,"fine"),(bal,"bal"),(fmd,"fmode"),(cut,"cutoff"),(res,"res"),(eam,"famt"),(ktr,"ktrk"),(vf,"velf"),
+      (fa,"fa"),(fd,"fd"),(fs,"fs"),(fr,"fr"),(aa,"aa"),(ad,"ad"),(as_,"as"),(ar,"ar"))
+for k,(o,name) in enumerate(PARS):
+    pp=p.obj("prepend "+name,700+k*70,300,66); p.c(o,0,pp); p.c(pp,0,spar)
+# destinazione e quantita' dell'LFO -> tre quantita' (semitoni, Hz, pw)
+lk=p.obj("pak i f",700,360); p.c(ds,0,lk,0); p.c(lam,0,lk,1)
+for k,(nm,ex) in enumerate((("lp","expr ($i1==0)*$f2*12."),("lf","expr ($i1==1)*$f2*6000."),("lw","expr ($i1==2)*$f2*0.45"))):
+    e_=p.obj(ex,700+k*170,390,160); p.c(lk,0,e_); pp=p.obj("prepend "+nm,700+k*170,420,66); p.c(e_,0,pp); p.c(pp,0,spar)
+# ---- LFO: fase libera o sincronizzata ai BPM -> poly~ (secondo ingresso, segnale)
+lb=p.obj("loadbang",1500,200)
+INIT=[(o1,"1"),(pw,"0.5"),(o2,"1"),(sm,"0"),(fn,"7"),(bal,"0.5"),(fmd,"1"),(cut,"1200"),(res,"0.3"),(eam,"3000"),(ktr,"0.5"),(vf,"0.5"),
+      (fa,"5"),(fd,"300"),(fs,"0.3"),(fr,"300"),(aa,"5"),(ad,"200"),(as_,"0.6"),(ar,"300"),
+      (shp,"0"),(rate,"5"),(sy,"0"),(dvm,"4"),(ds,"0"),(lam,"0"),(un,"0"),(dt,"10"),(spd,"0.5"),(md,"0"),(por,"80"),(lev,"0.5")]
+for k,(o,val) in enumerate(INIT):
+    m=p.msg(val,1500+k*40,230); p.c(lb,0,m); p.c(m,0,o)
+ql=p.msg("16 8 4 2 1 0.5 0.25 0.666667 0.333333 0.166667",1500+len(INIT)*40+20,230,330); p.c(lb,0,ql)
+zl=p.obj("zl lookup",1300,470); p.c(ql,0,zl,1); p.c(dvm,0,zl,0)
+rtm=p.obj("r clock.tempo",1420,470)
+pkz=p.obj("pak 120. 1.",1360,500); p.c(rtm,0,pkz,0); p.c(zl,0,pkz,1)
+hz=p.obj("expr $f1/(60.*$f2)",1360,530,140); p.c(pkz,0,hz)
+tbi=p.obj("t b i",1240,470); p.c(sy,0,tbi)
+ad1=p.obj("+ 1",1240,500); p.c(tbi,1,ad1)
+sw=p.obj("switch 2 1",1240,570); p.c(ad1,0,sw,0); p.c(rate,0,sw,1); p.c(hz,0,sw,2)
+p.c(tbi,0,rate); p.c(tbi,0,pkz)
+ph=p.obj("phasor~",1240,610); p.c(sw,0,ph,0)
+rr=p.obj("r clock.running",1460,570); s1=p.obj("sel 1",1460,600); p.c(rr,0,s1); z0=p.msg("0",1460,630); p.c(s1,0,z0); p.c(z0,0,ph,1)
+tx2=p.obj("*~ 2",1240,650); p.c(ph,0,tx2); tm1=p.obj("-~ 1",1240,680); p.c(tx2,0,tm1)
+tab=p.obj("abs~",1240,710); p.c(tm1,0,tab); ta2=p.obj("*~ 2",1240,740); p.c(tab,0,ta2); tri=p.obj("-~ 1",1240,770); p.c(ta2,0,tri)
+lt=p.obj("<~ 0.5",1320,650); p.c(ph,0,lt); q2=p.obj("*~ 2",1320,680); p.c(lt,0,q2); sq=p.obj("-~ 1",1320,710); p.c(q2,0,sq)
+nz=p.obj("noise~",1400,650); sh=p.obj("sah~ 0.5",1400,690); p.c(nz,0,sh,0); p.c(ph,0,sh,1)
+shp1=p.obj("+ 1",1160,750); p.c(shp,0,shp1)
+lsel=p.obj("selector~ 4 1",1160,810,120); p.c(shp1,0,lsel,0); p.c(tri,0,lsel,1); p.c(tm1,0,lsel,2); p.c(sq,0,lsel,3); p.c(sh,0,lsel,4)
+p.c(lsel,0,poly,1)
+# ---- uscita stereo
+oL=p.obj("*~ 0.5",10,380); oR=p.obj("*~ 0.5",120,380); p.c(poly,0,oL,0); p.c(poly,1,oR,0); p.c(lev,0,oL,1); p.c(lev,0,oR,1)
+p.c(oL,0,p.obj("send~ bus.lead.L",10,410,110)); p.c(oR,0,p.obj("send~ bus.lead.R",130,410,110))
+# ---- preset
+KN={"o1":o1,"pw":pw,"o2":o2,"sm":sm,"fn":fn,"bal":bal,"fmd":fmd,"cut":cut,"res":res,"eam":eam,"ktr":ktr,"vf":vf,"fa":fa,"fd":fd,"fs":fs,"fr":fr,
+    "aa":aa,"ad":ad,"as":as_,"ar":ar,"shp":shp,"rate":rate,"sy":sy,"ds":ds,"lam":lam,"un":un,"dt":dt,"spd":spd,"md":md,"por":por}
+PRESETS=[(pr1,{"o1":"1","pw":"0.5","o2":"1","sm":"0","fn":"9","bal":"0.5","fmd":"1","cut":"900","res":"0.2","eam":"1500","ktr":"0.5","vf":"0.3","fa":"400","fd":"1500","fs":"0.5","fr":"1500","aa":"300","ad":"1000","as":"0.8","ar":"1500","shp":"0","rate":"0.3","sy":"0","ds":"1","lam":"0.15","un":"1","dt":"14","spd":"0.9","md":"0"}),
+         (pr2,{"o1":"1","o2":"2","pw":"0.5","sm":"12","fn":"3","bal":"0.4","fmd":"1","cut":"600","res":"0.4","eam":"5000","ktr":"0.6","vf":"0.8","fa":"1","fd":"180","fs":"0","fr":"120","aa":"1","ad":"250","as":"0.2","ar":"200","ds":"0","lam":"0","un":"0","dt":"0","spd":"0","md":"0"}),
+         (pr3,{"o1":"1","o2":"2","pw":"0.6","sm":"-12","fn":"5","bal":"0.35","fmd":"0","cut":"2500","res":"0.5","eam":"2500","ktr":"0.4","vf":"0.5","fa":"5","fd":"400","fs":"0.4","fr":"300","aa":"5","ad":"200","as":"0.7","ar":"250","shp":"0","rate":"5.5","sy":"0","ds":"0","lam":"0.03","un":"1","dt":"8","spd":"0.3","md":"2","por":"60"}),
+         (pr4,{"o1":"1","o2":"1","pw":"0.5","sm":"0","fn":"6","bal":"0.5","fmd":"1","cut":"700","res":"0.25","eam":"4000","ktr":"0.5","vf":"0.6","fa":"60","fd":"500","fs":"0.35","fr":"300","aa":"30","ad":"300","as":"0.8","ar":"300","ds":"0","lam":"0","un":"1","dt":"6","spd":"0.6","md":"0"})]
+for pi,(b_,vals) in enumerate(PRESETS):
+    for k,(key,val) in enumerate(vals.items()):
+        m=p.msg(val,1500+pi*40,280+k*22); p.c(b_,0,m); p.c(m,0,KN[key])
 p.save("lead.maxpat")
 
 # ---------------- MIXER (stereo, con send/return) ----------------
@@ -522,6 +761,7 @@ p=P()
 p.com("MIXER",5,2,bold=True)
 p.com("level",70,2); p.com("delay",230,2); p.com("reverb",282,2)
 ch=[("drums","bus.drums",0.0,0.15),("bass","bus.bass",0.0,0.1),("sampler","bus.sampler",0.3,0.3),("lead","bus.lead",0.25,0.3)]
+STEREO=("sampler","lead")
 lb=p.obj("loadbang",10,300)
 def init(o,val,x):
     m=p.msg(str(val),x,330); p.c(lb,0,m); p.c(m,0,o)
@@ -535,7 +775,7 @@ for i,(nm,bus,sd,sr) in enumerate(ch):
     snd=p.ui("flonum",230,y,48,22,minimum=0.,maximum=1.)
     snr=p.ui("flonum",282,y,48,22,minimum=0.,maximum=1.)
     init(lv,0.8,40+i*150); init(snd,sd,80+i*150); init(snr,sr,120+i*150)
-    if nm=="sampler":   # canale stereo
+    if nm in STEREO:   # canale stereo
         rcl=p.obj("receive~ "+bus+".L",10+i*150,400,120); rcr=p.obj("receive~ "+bus+".R",10+i*150,370,120)
         g=p.obj("*~",10+i*150,430); gr=p.obj("*~",80+i*150,430)
         p.c(rcl,0,g,0); p.c(rcr,0,gr,0); p.c(lv,0,g,1); p.c(lv,0,gr,1)
@@ -642,12 +882,12 @@ p.bp("sequencer.maxpat",280,36,650,100)
 p.bp("drumseq.maxpat",10,146,930,400)
 p.bp("delay.maxpat",950,146,280,105)
 p.bp("reverb.maxpat",950,261,280,105)
-p.bp("drums.maxpat",10,556,420,95)
-p.bp("bass.maxpat",440,556,270,105)
-p.bp("mod.maxpat",720,556,370,120)
-p.bp("arp.maxpat",10,686,430,140)
-p.bp("lead.maxpat",450,686,320,110)
-p.bp("sampler.maxpat",10,836,470,145)
-p.bp("mixer.maxpat",490,836,440,190)
-p.save("main.maxpat",(30,30,1250,1040))
+p.bp("bassseq.maxpat",10,556,930,500)
+p.bp("drums.maxpat",10,1066,420,95)
+p.bp("bass.maxpat",440,1066,650,150)
+p.bp("arp.maxpat",10,1226,430,140)
+p.bp("lead.maxpat",450,1226,670,150)
+p.bp("sampler.maxpat",10,1376,470,145)
+p.bp("mixer.maxpat",490,1376,440,190)
+p.save("main.maxpat",(30,30,1250,1600))
 print("ok")

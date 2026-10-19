@@ -12,7 +12,7 @@
    30,
    30,
    1250,
-   1040
+   1600
   ],
   "boxes": [
    {
@@ -164,12 +164,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "drums.maxpat",
+     "name": "bassseq.maxpat",
      "patching_rect": [
       10,
       556,
-      420,
-      95
+      930,
+      500
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -190,12 +190,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "bass.maxpat",
+     "name": "drums.maxpat",
      "patching_rect": [
-      440,
-      556,
-      270,
-      105
+      10,
+      1066,
+      420,
+      95
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -216,12 +216,12 @@
    {
     "box": {
      "maxclass": "bpatcher",
-     "name": "mod.maxpat",
+     "name": "bass.maxpat",
      "patching_rect": [
-      720,
-      556,
-      370,
-      120
+      440,
+      1066,
+      650,
+      150
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -245,7 +245,7 @@
      "name": "arp.maxpat",
      "patching_rect": [
       10,
-      686,
+      1226,
       430,
       140
      ],
@@ -271,9 +271,9 @@
      "name": "lead.maxpat",
      "patching_rect": [
       450,
-      686,
-      320,
-      110
+      1226,
+      670,
+      150
      ],
      "numinlets": 0,
      "numoutlets": 0,
@@ -297,7 +297,7 @@
      "name": "sampler.maxpat",
      "patching_rect": [
       10,
-      836,
+      1376,
       470,
       145
      ],
@@ -323,7 +323,7 @@
      "name": "mixer.maxpat",
      "patching_rect": [
       490,
-      836,
+      1376,
       440,
       190
      ],

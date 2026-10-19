@@ -80,6 +80,8 @@
       ""
      ],
      "parameter_enable": 0,
+     "minimum": 20,
+     "maximum": 300,
      "id": "obj-4"
     }
    },

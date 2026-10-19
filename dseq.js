@@ -210,7 +210,7 @@ function mode(x) { P[edit].c[selV][selS][4] = x ? 1 : 0; }
 function rep(x)  { P[edit].rep[selS] = clamp(x, 1, 8); }
 function len(x)  { P[edit].len = clamp(x, 1, MAXS); outlet(6, "len", P[edit].len); }
 function dir(x)  { P[edit].dir = clamp(x, 0, DIRS.length - 1); }
-function swing(x) { swingAmt = clamp(x, 50, 75); }
+function swing(x) { swingAmt = clamp(x, 50, 75); outlet(6, "swing", swingAmt); }
 function only(x) { editonly = x ? 1 : 0; }
 function note(v, n) { if (v >= 0 && v < NV) drumNotes[v] = n; }
 function tempo(x) { if (x > 0) bpm = x; }

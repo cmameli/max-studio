@@ -1,11 +1,10 @@
 // seq.js - sequencer euclideo evolutivo dello studio (JavaScript ES5)
 // Ingresso: "step n" dal clock + messaggi di editing
-// La batteria e' passata a dseq.js (DRUM SEQ): qui restano sampler e basso.
+// Batteria (dseq.js) e basso (bseq.js) hanno i loro moduli: qui resta il sampler.
 autowatch = 1;
 inlets = 1;
-outlets = 4;
-// 0: bass "nota vel slide accento" | 1: sampler "slot vel"
-// 2: step corrente (0-15) | 3: display "traccia set ..."
+outlets = 3;
+// 0: sampler "slot vel" | 1: step corrente (0-15) | 2: display "traccia set ..."
 
 var STEPS = 16;
 var TR = 1;                        // traccia 0: sampler
@@ -13,7 +12,6 @@ var pat = [];                      // pat[t][s] = velocity (0 = spento)
 var len = [];                      // lunghezza del ciclo per traccia
 var prb = [];                      // probabilita' 0..1
 var E = [];                        // stato euclideo ed evoluzione per traccia
-var bassSteps = [], bassLen = 16, bassOct = 0;
 
 function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
 
@@ -23,7 +21,6 @@ function init() {
         for (var s = 0; s < STEPS; s++) pat[t][s] = 0;
         E[t] = { h: 0, st: 16, r: 0, baseH: 0, baseR: 0, evo: 0, every: 4, rstep: 1, walk: 0 };
     }
-    for (s = 0; s < STEPS; s++) bassSteps[s] = { n: 0, v: 100, sl: 0, ac: 0 };
 }
 init();
 
@@ -79,7 +76,7 @@ function evoreset() {
 function show(t) {
     var a = [t, "set", E[t].h + "/" + E[t].st, "r" + E[t].r, ":"];
     for (var s = 0; s < len[t]; s++) a.push(pat[t][s] > 0 ? "x" : "-");
-    outlet(3, a);
+    outlet(2, a);
 }
 
 function prob(t, p) { prb[t] = clamp(p, 0, 1); }
@@ -94,31 +91,7 @@ function step(n) {
         var v = pat[t][n % len[t]];
         fire[t] = (v > 0 && Math.random() < prb[t]) ? v : 0;
     }
-    if (fire[0] > 0) outlet(1, 0, fire[0]);
+    if (fire[0] > 0) outlet(0, 0, fire[0]);
 
-    var b = bassSteps[n % bassLen];
-    if (b.n > 0) outlet(0, b.n + bassOct * 12, b.v, b.sl, b.ac);
-
-    outlet(2, n % STEPS);
-}
-
-// ---------------- basso ----------------
-function bass(s, n, v, sl, ac) {
-    var a = arrayfromargs(arguments);
-    bassSteps[s] = { n: n, v: a.length > 2 ? v : 100, sl: a.length > 3 ? sl : 0, ac: a.length > 4 ? ac : 0 };
-}
-function brest(s) { bassSteps[s].n = 0; }
-function bline() {
-    var a = arrayfromargs(arguments);
-    for (var s = 0; s < STEPS; s++) bassSteps[s] = { n: s < a.length ? a[s] : 0, v: 100, sl: 0, ac: 0 };
-}
-function bslide(s, on) { bassSteps[s].sl = on ? 1 : 0; }
-function boct(o)  { bassOct = clamp(o, -3, 3); }
-function blen(l)  { bassLen = clamp(l, 1, STEPS); }
-function bclear() { for (var s = 0; s < STEPS; s++) bassSteps[s].n = 0; }
-
-function demo() {
-    bline(36, 0, 36, 48, 0, 36, 0, 39, 36, 0, 43, 0, 36, 48, 0, 41);
-    bslide(3, 1); bslide(11, 1);
-    post("seq: linea di basso demo caricata\n");
+    outlet(1, n % STEPS);
 }
